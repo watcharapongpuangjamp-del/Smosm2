@@ -17,12 +17,14 @@ interface SyncSettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   onResetData: () => void;
+  onClearData: () => void;
 }
 
 export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
   isOpen,
   onClose,
   onResetData,
+  onClearData,
 }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
@@ -187,6 +189,27 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span>รีเซ็ตข้อมูลตัวอย่าง</span>
+            </button>
+          </div>
+
+          <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
+            <div>
+              <span className="text-xs font-bold text-rose-700 block">ล้างข้อมูลทั้งหมด (Clear All)</span>
+              <span className="text-[11px] text-slate-500">
+                ล้างข้อมูลทั้งหมดในเครื่องออกทันที โดยไม่โหลดค่าเริ่มต้น
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                if (confirm('ต้องการล้างข้อมูลทั้งหมดในเครื่องทันทีหรือไม่? (ไม่สามารถกู้คืนได้)')) {
+                  onClearData();
+                  onClose();
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-sm"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+              <span>ล้างข้อมูลทั้งหมด</span>
             </button>
           </div>
         </div>

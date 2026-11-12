@@ -419,6 +419,11 @@ class StorageService {
     this.initDefaults();
     this.log('create', 'system', 'รีเซ็ตข้อมูลสู่ค่าเริ่มต้นระบบ');
   }
+
+  clearAllData() {
+    localStorage.clear();
+    this.log('delete', 'system', 'ล้างข้อมูลทั้งหมดในระบบ');
+  }
 }
 
 export const storage = new StorageService();

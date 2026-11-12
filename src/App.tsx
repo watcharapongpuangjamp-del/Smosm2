@@ -167,6 +167,11 @@ export const App: React.FC = () => {
     loadData();
   };
 
+  const handleClearData = () => {
+    storage.clearAllData();
+    loadData();
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
       {/* Top Navbar */}
@@ -356,6 +361,7 @@ export const App: React.FC = () => {
         isOpen={isSyncModalOpen}
         onClose={() => setIsSyncModalOpen(false)}
         onResetData={handleResetData}
+        onClearData={handleClearData}
       />
     </div>
   );
