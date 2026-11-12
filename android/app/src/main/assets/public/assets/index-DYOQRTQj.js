@@ -14892,12 +14892,117 @@ const INITIAL_SCREENINGS = [
     createdAt: "2026-09-26T15:00:00Z"
   }
 ];
+const INITIAL_APPOINTMENTS = [
+  {
+    id: "apt-1",
+    personId: "person-3",
+    // นางคำปัน ใจแก้ว (ติดเตียง)
+    householdId: "house-2",
+    villageNo: 1,
+    vhvMemberId: "vhv-1",
+    title: "เยี่ยมบ้านติดตามแผลกดทับและกายภาพบำบัด",
+    type: "home_visit",
+    date: "2026-11-14",
+    time: "09:30",
+    location: "บ้านเลขที่ 15/2 หมู่ 1",
+    status: "upcoming",
+    notes: "ร่วมลงพื้นที่กับพยาบาลวิชาชีพ รพ.สต. เพื่อล้างแผลกดทับและแนะนำญาติเรื่องการพลิกตัว",
+    createdAt: "2026-11-01T08:00:00Z",
+    updatedAt: "2026-11-01T08:00:00Z"
+  },
+  {
+    id: "apt-2",
+    personId: "person-1",
+    // นายประสิทธิ์ สุขเกษม
+    householdId: "house-1",
+    villageNo: 1,
+    vhvMemberId: "vhv-1",
+    title: "ตรวจวัดความดันโลหิตและเจาะน้ำตาลสะสมรอบ 3 เดือน",
+    type: "vitals_check",
+    date: "2026-11-15",
+    time: "08:00",
+    location: "บ้านเลขที่ 12/1 หมู่ 1",
+    status: "upcoming",
+    notes: "แนะนำให้อดอาหารและน้ำหวานหลังเที่ยงคืนก่อนตรวจ DTX",
+    createdAt: "2026-11-02T09:00:00Z",
+    updatedAt: "2026-11-02T09:00:00Z"
+  },
+  {
+    id: "apt-3",
+    personId: "person-6",
+    // นางมาลี บัวบาน (ติดบ้าน, เข่าเสื่อม)
+    householdId: "house-4",
+    villageNo: 1,
+    vhvMemberId: "vhv-2",
+    title: "นัดพบแพทย์คลินิกโรคเรื้อรังและรับยาความดัน",
+    type: "hospital_visit",
+    date: "2026-11-16",
+    time: "10:00",
+    location: "รพ.สต. ตำบลสุขภาพดี",
+    status: "upcoming",
+    notes: "ประสานญาติเพื่อช่วยพยุงและนำสมุดประจำตัวผู้ป่วยไปด้วย",
+    createdAt: "2026-11-05T10:00:00Z",
+    updatedAt: "2026-11-05T10:00:00Z"
+  },
+  {
+    id: "apt-4",
+    personId: "person-8",
+    // นางสาวกัญญา (หญิงตั้งครรภ์)
+    householdId: "house-5",
+    villageNo: 1,
+    vhvMemberId: "vhv-2",
+    title: "นัดตรวจครรภ์ตามนัด (ANC) และฉีดวัคซีนบาดทะยัก",
+    type: "vaccine",
+    date: "2026-11-18",
+    time: "09:00",
+    location: "รพ.สต. ตำบลสุขภาพดี",
+    status: "upcoming",
+    notes: "ตรวจคัดกรองเบาหวานขณะตั้งครรภ์ นำสมุดสีชมพูมาด้วย",
+    createdAt: "2026-11-06T11:00:00Z",
+    updatedAt: "2026-11-06T11:00:00Z"
+  },
+  {
+    id: "apt-5",
+    personId: "person-5",
+    // นายวิเชียร วงศ์ษา (พบบ้านมีลูกน้ำ)
+    householdId: "house-3",
+    villageNo: 1,
+    vhvMemberId: "vhv-1",
+    title: "ตรวจติดตามแหล่งเพาะพันธุ์ลูกน้ำยุงลายและใส่ทรายอะเบทซ้ำ",
+    type: "larva_survey",
+    date: "2026-11-14",
+    time: "14:00",
+    location: "บ้านเลขที่ 24 หมู่ 1",
+    status: "upcoming",
+    notes: "ตรวจอ่างบัวและจานรองกระถางต้นไม้หน้าบ้าน",
+    createdAt: "2026-11-08T13:00:00Z",
+    updatedAt: "2026-11-08T13:00:00Z"
+  },
+  {
+    id: "apt-6",
+    personId: "person-2",
+    // นางอำไพ สุขเกษม
+    householdId: "house-1",
+    villageNo: 1,
+    vhvMemberId: "vhv-1",
+    title: "ตรวจติดตามระดับน้ำตาลหลังอาหาร",
+    type: "vitals_check",
+    date: "2026-10-25",
+    time: "13:30",
+    location: "บ้านเลขที่ 12/1 หมู่ 1",
+    status: "completed",
+    notes: "ผล DTX ได้ 128 mg/dL คุมได้ดีขึ้น แนะนำลดผลไม้หวานจัด",
+    createdAt: "2026-10-15T09:00:00Z",
+    updatedAt: "2026-10-25T14:00:00Z"
+  }
+];
 const KEYS = {
   VILLAGES: "smart_osm_villages",
   VHV_MEMBERS: "smart_osm_vhv_members",
   HOUSEHOLDS: "smart_osm_households",
   PERSONS: "smart_osm_persons",
   SCREENINGS: "smart_osm_screenings",
+  APPOINTMENTS: "smart_osm_appointments",
   TOMBSTONES: "smart_osm_tombstones",
   LOGS: "smart_osm_audit_logs",
   LAST_SYNC: "smart_osm_last_sync"
@@ -14921,6 +15026,9 @@ class StorageService {
     }
     if (!localStorage.getItem(KEYS.SCREENINGS)) {
       localStorage.setItem(KEYS.SCREENINGS, JSON.stringify(INITIAL_SCREENINGS));
+    }
+    if (!localStorage.getItem(KEYS.APPOINTMENTS)) {
+      localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(INITIAL_APPOINTMENTS));
     }
     if (!localStorage.getItem(KEYS.TOMBSTONES)) {
       localStorage.setItem(KEYS.TOMBSTONES, JSON.stringify([]));
@@ -15095,6 +15203,68 @@ class StorageService {
     }
     this.log("create", "screenings", `บันทึกการคัดกรองสุขภาพ วันที่ ${screening.date}`);
   }
+  // --- Appointments (ปฏิทินนัดหมาย) ---
+  getAppointments(villageNo) {
+    try {
+      const data = localStorage.getItem(KEYS.APPOINTMENTS);
+      const list = data ? JSON.parse(data) : INITIAL_APPOINTMENTS;
+      if (villageNo !== void 0 && villageNo !== 0) {
+        return list.filter((a) => a.villageNo === villageNo);
+      }
+      return list;
+    } catch {
+      return INITIAL_APPOINTMENTS;
+    }
+  }
+  getAppointmentsByPerson(personId) {
+    return this.getAppointments().filter((a) => a.personId === personId).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  getUpcomingAppointments(daysAhead = 7, villageNo) {
+    const list = this.getAppointments(villageNo);
+    const today = /* @__PURE__ */ new Date();
+    today.setHours(0, 0, 0, 0);
+    const futureLimit = new Date(today);
+    futureLimit.setDate(today.getDate() + daysAhead);
+    futureLimit.setHours(23, 59, 59, 999);
+    return list.filter((a) => {
+      if (a.status !== "upcoming") return false;
+      const aptDate = new Date(a.date);
+      return aptDate >= today && aptDate <= futureLimit;
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  saveAppointment(appointment) {
+    const list = this.getAppointments();
+    const idx = list.findIndex((a) => a.id === appointment.id);
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    appointment.updatedAt = now;
+    if (idx >= 0) {
+      list[idx] = appointment;
+      this.log("update", "appointments", `อัปเดตนัดหมาย: ${appointment.title}`);
+    } else {
+      appointment.createdAt = now;
+      list.push(appointment);
+      this.log("create", "appointments", `สร้างนัดหมายใหม่: ${appointment.title}`);
+    }
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(list));
+  }
+  updateAppointmentStatus(id, status) {
+    const list = this.getAppointments();
+    const apt = list.find((a) => a.id === id);
+    if (!apt) return;
+    apt.status = status;
+    apt.updatedAt = (/* @__PURE__ */ new Date()).toISOString();
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(list));
+    this.log("update", "appointments", `เปลี่ยนสถานะนัดหมาย ${apt.title} เป็น ${status}`);
+  }
+  deleteAppointment(id) {
+    const list = this.getAppointments();
+    const target = list.find((a) => a.id === id);
+    if (!target) return;
+    const filtered = list.filter((a) => a.id !== id);
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(filtered));
+    this.addTombstone("appointments", target.villageNo, id);
+    this.log("delete", "appointments", `ลบนัดหมาย: ${target.title}`);
+  }
   // --- Tombstones & Sync ---
   addTombstone(collection, villageNo, id) {
     try {
@@ -15151,6 +15321,7 @@ class StorageService {
       households: this.getHouseholds(),
       persons: this.getPersons(),
       screenings: this.getScreenings(),
+      appointments: this.getAppointments(),
       tombstones: this.getTombstones()
     };
   }
@@ -15163,6 +15334,7 @@ class StorageService {
     if (payload.households) localStorage.setItem(KEYS.HOUSEHOLDS, JSON.stringify(payload.households));
     if (payload.persons) localStorage.setItem(KEYS.PERSONS, JSON.stringify(payload.persons));
     if (payload.screenings) localStorage.setItem(KEYS.SCREENINGS, JSON.stringify(payload.screenings));
+    if (payload.appointments) localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(payload.appointments));
     this.log("import", "system", `นำเข้าข้อมูลสำรองทั้งหมดสำเร็จ (${payload.persons.length} ประชากร, ${payload.households.length} ครัวเรือน)`);
     return true;
   }
@@ -15428,7 +15600,7 @@ function createLucideIcon(iconDataOrName, iconNode = [], aliases = []) {
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$J = {
+const __iconData$R = {
   name: "activity",
   size: 24,
   node: [
@@ -15441,15 +15613,15 @@ const __iconData$J = {
     ]
   ]
 };
-__iconData$J.node;
-const Activity = createLucideIcon(__iconData$J);
+__iconData$R.node;
+const Activity = createLucideIcon(__iconData$R);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$I = {
+const __iconData$Q = {
   name: "arrow-up-right",
   size: 24,
   node: [
@@ -15457,15 +15629,15 @@ const __iconData$I = {
     ["path", { d: "M7 17 17 7", key: "1vkiza" }]
   ]
 };
-__iconData$I.node;
-const ArrowUpRight = createLucideIcon(__iconData$I);
+__iconData$Q.node;
+const ArrowUpRight = createLucideIcon(__iconData$Q);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$H = {
+const __iconData$P = {
   name: "book-open",
   size: 24,
   node: [
@@ -15479,15 +15651,15 @@ const __iconData$H = {
     ]
   ]
 };
-__iconData$H.node;
-const BookOpen = createLucideIcon(__iconData$H);
+__iconData$P.node;
+const BookOpen = createLucideIcon(__iconData$P);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$G = {
+const __iconData$O = {
   name: "bug",
   size: 24,
   node: [
@@ -15504,67 +15676,122 @@ const __iconData$G = {
     ["path", { d: "M9 7.13V6a3 3 0 1 1 6 0v1.13", key: "1vgav8" }]
   ]
 };
-__iconData$G.node;
-const Bug = createLucideIcon(__iconData$G);
+__iconData$O.node;
+const Bug = createLucideIcon(__iconData$O);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$F = {
+const __iconData$N = {
+  name: "calendar-days",
+  size: 24,
+  node: [
+    ["path", { d: "M8 2v3", key: "1ioesn" }],
+    ["path", { d: "M16 2v3", key: "otl347" }],
+    ["rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", key: "h1oib" }],
+    ["path", { d: "M3 9h18", key: "1pudct" }],
+    ["path", { d: "M8 13h.01", key: "1sbv64" }],
+    ["path", { d: "M12 13h.01", key: "y0uutt" }],
+    ["path", { d: "M16 13h.01", key: "wip0gl" }],
+    ["path", { d: "M8 17h.01", key: "p3bg7i" }],
+    ["path", { d: "M12 17h.01", key: "p32p05" }],
+    ["path", { d: "M16 17h.01", key: "ql8jdd" }]
+  ]
+};
+__iconData$N.node;
+const CalendarDays = createLucideIcon(__iconData$N);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$M = {
+  name: "calendar",
+  size: 24,
+  node: [
+    ["path", { d: "M8 2v3", key: "1ioesn" }],
+    ["path", { d: "M16 2v3", key: "otl347" }],
+    ["rect", { x: "3", y: "3", width: "18", height: "18", rx: "2", key: "h1oib" }],
+    ["path", { d: "M3 9h18", key: "1pudct" }]
+  ]
+};
+__iconData$M.node;
+const Calendar = createLucideIcon(__iconData$M);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$L = {
   name: "check",
   size: 24,
   node: [["path", { d: "M20 6 9 17l-5-5", key: "1gmf2c" }]]
 };
-__iconData$F.node;
-const Check = createLucideIcon(__iconData$F);
+__iconData$L.node;
+const Check = createLucideIcon(__iconData$L);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$E = {
+const __iconData$K = {
   name: "chevron-down",
   size: 24,
   node: [["path", { d: "m6 9 6 6 6-6", key: "qrunsl" }]]
 };
-__iconData$E.node;
-const ChevronDown = createLucideIcon(__iconData$E);
+__iconData$K.node;
+const ChevronDown = createLucideIcon(__iconData$K);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$D = {
+const __iconData$J = {
+  name: "chevron-left",
+  size: 24,
+  node: [["path", { d: "m15 18-6-6 6-6", key: "1wnfg3" }]]
+};
+__iconData$J.node;
+const ChevronLeft = createLucideIcon(__iconData$J);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$I = {
   name: "chevron-right",
   size: 24,
   node: [["path", { d: "m9 18 6-6-6-6", key: "mthhwq" }]]
 };
-__iconData$D.node;
-const ChevronRight = createLucideIcon(__iconData$D);
+__iconData$I.node;
+const ChevronRight = createLucideIcon(__iconData$I);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$C = {
+const __iconData$H = {
   name: "chevron-up",
   size: 24,
   node: [["path", { d: "m18 15-6-6-6 6", key: "153udz" }]]
 };
-__iconData$C.node;
-const ChevronUp = createLucideIcon(__iconData$C);
+__iconData$H.node;
+const ChevronUp = createLucideIcon(__iconData$H);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$B = {
+const __iconData$G = {
   name: "circle-check",
   size: 24,
   node: [
@@ -15573,15 +15800,15 @@ const __iconData$B = {
   ],
   aliases: ["check-circle-2"]
 };
-__iconData$B.node;
-const CircleCheck = createLucideIcon(__iconData$B);
+__iconData$G.node;
+const CircleCheck = createLucideIcon(__iconData$G);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$A = {
+const __iconData$F = {
   name: "circle-exclamation-point",
   size: 24,
   node: [
@@ -15591,15 +15818,15 @@ const __iconData$A = {
   ],
   aliases: ["alert-circle", "circle-alert"]
 };
-__iconData$A.node;
-const CircleExclamationPoint = createLucideIcon(__iconData$A);
+__iconData$F.node;
+const CircleExclamationPoint = createLucideIcon(__iconData$F);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$z = {
+const __iconData$E = {
   name: "circle-plus",
   size: 24,
   node: [
@@ -15609,15 +15836,33 @@ const __iconData$z = {
   ],
   aliases: ["plus-circle"]
 };
-__iconData$z.node;
-const CirclePlus = createLucideIcon(__iconData$z);
+__iconData$E.node;
+const CirclePlus = createLucideIcon(__iconData$E);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$y = {
+const __iconData$D = {
+  name: "circle-question-mark",
+  size: 24,
+  node: [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M9 9.5a3 2.5 0 016 0c0 2-2 2-3 3.5", key: "1awbb0" }],
+    ["path", { d: "M12 17h.01", key: "p32p05" }]
+  ],
+  aliases: ["help-circle", "circle-help"]
+};
+__iconData$D.node;
+const CircleQuestionMark = createLucideIcon(__iconData$D);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$C = {
   name: "clipboard-list",
   size: 24,
   node: [
@@ -15635,15 +15880,31 @@ const __iconData$y = {
     ["path", { d: "M8 16h.01", key: "18s6g9" }]
   ]
 };
-__iconData$y.node;
-const ClipboardList = createLucideIcon(__iconData$y);
+__iconData$C.node;
+const ClipboardList = createLucideIcon(__iconData$C);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$x = {
+const __iconData$B = {
+  name: "clock",
+  size: 24,
+  node: [
+    ["circle", { cx: "12", cy: "12", r: "10", key: "1mglay" }],
+    ["path", { d: "M12 6v6l4 2", key: "mmk7yg" }]
+  ]
+};
+__iconData$B.node;
+const Clock = createLucideIcon(__iconData$B);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$A = {
   name: "database",
   size: 24,
   node: [
@@ -15652,15 +15913,15 @@ const __iconData$x = {
     ["path", { d: "M3 12A9 3 0 0 0 21 12", key: "mv7ke4" }]
   ]
 };
-__iconData$x.node;
-const Database = createLucideIcon(__iconData$x);
+__iconData$A.node;
+const Database = createLucideIcon(__iconData$A);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$w = {
+const __iconData$z = {
   name: "download",
   size: 24,
   node: [
@@ -15669,15 +15930,15 @@ const __iconData$w = {
     ["path", { d: "m7 10 5 5 5-5", key: "brsn70" }]
   ]
 };
-__iconData$w.node;
-const Download = createLucideIcon(__iconData$w);
+__iconData$z.node;
+const Download = createLucideIcon(__iconData$z);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$v = {
+const __iconData$y = {
   name: "droplet",
   size: 24,
   node: [
@@ -15690,15 +15951,15 @@ const __iconData$v = {
     ]
   ]
 };
-__iconData$v.node;
-const Droplet = createLucideIcon(__iconData$v);
+__iconData$y.node;
+const Droplet = createLucideIcon(__iconData$y);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$u = {
+const __iconData$x = {
   name: "eye",
   size: 24,
   node: [
@@ -15712,15 +15973,15 @@ const __iconData$u = {
     ["circle", { cx: "12", cy: "12", r: "3", key: "1v7zrd" }]
   ]
 };
-__iconData$u.node;
-const Eye = createLucideIcon(__iconData$u);
+__iconData$x.node;
+const Eye = createLucideIcon(__iconData$x);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$t = {
+const __iconData$w = {
   name: "file-braces",
   size: 24,
   node: [
@@ -15743,15 +16004,15 @@ const __iconData$t = {
   ],
   aliases: ["file-json"]
 };
-__iconData$t.node;
-const FileBraces = createLucideIcon(__iconData$t);
+__iconData$w.node;
+const FileBraces = createLucideIcon(__iconData$w);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$s = {
+const __iconData$v = {
   name: "file-spreadsheet",
   size: 24,
   node: [
@@ -15769,15 +16030,15 @@ const __iconData$s = {
     ["path", { d: "M14 17h2", key: "10kma7" }]
   ]
 };
-__iconData$s.node;
-const FileSpreadsheet = createLucideIcon(__iconData$s);
+__iconData$v.node;
+const FileSpreadsheet = createLucideIcon(__iconData$v);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$r = {
+const __iconData$u = {
   name: "file-text",
   size: 24,
   node: [
@@ -15794,15 +16055,15 @@ const __iconData$r = {
     ["path", { d: "M16 17H8", key: "z1uh3a" }]
   ]
 };
-__iconData$r.node;
-const FileText = createLucideIcon(__iconData$r);
+__iconData$u.node;
+const FileText = createLucideIcon(__iconData$u);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$q = {
+const __iconData$t = {
   name: "heart-handshake",
   size: 24,
   node: [
@@ -15815,15 +16076,15 @@ const __iconData$q = {
     ]
   ]
 };
-__iconData$q.node;
-const HeartHandshake = createLucideIcon(__iconData$q);
+__iconData$t.node;
+const HeartHandshake = createLucideIcon(__iconData$t);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$p = {
+const __iconData$s = {
   name: "heart-pulse",
   size: 24,
   node: [
@@ -15837,15 +16098,15 @@ const __iconData$p = {
     ["path", { d: "M3.22 13H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27", key: "auskq0" }]
   ]
 };
-__iconData$p.node;
-const HeartPulse = createLucideIcon(__iconData$p);
+__iconData$s.node;
+const HeartPulse = createLucideIcon(__iconData$s);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$o = {
+const __iconData$r = {
   name: "heart",
   size: 24,
   node: [
@@ -15858,15 +16119,15 @@ const __iconData$o = {
     ]
   ]
 };
-__iconData$o.node;
-const Heart = createLucideIcon(__iconData$o);
+__iconData$r.node;
+const Heart = createLucideIcon(__iconData$r);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$n = {
+const __iconData$q = {
   name: "house",
   size: 24,
   node: [
@@ -15881,15 +16142,15 @@ const __iconData$n = {
   ],
   aliases: ["home"]
 };
-__iconData$n.node;
-const House = createLucideIcon(__iconData$n);
+__iconData$q.node;
+const House = createLucideIcon(__iconData$q);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$m = {
+const __iconData$p = {
   name: "lock",
   size: 24,
   node: [
@@ -15897,15 +16158,15 @@ const __iconData$m = {
     ["path", { d: "M7 11V7a5 5 0 0 1 10 0v4", key: "fwvmzm" }]
   ]
 };
-__iconData$m.node;
-const Lock = createLucideIcon(__iconData$m);
+__iconData$p.node;
+const Lock = createLucideIcon(__iconData$p);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$l = {
+const __iconData$o = {
   name: "map-pin",
   size: 24,
   node: [
@@ -15919,28 +16180,50 @@ const __iconData$l = {
     ["circle", { cx: "12", cy: "10", r: "3", key: "ilqhr7" }]
   ]
 };
-__iconData$l.node;
-const MapPin = createLucideIcon(__iconData$l);
+__iconData$o.node;
+const MapPin = createLucideIcon(__iconData$o);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$k = {
+const __iconData$n = {
   name: "navigation",
   size: 24,
   node: [["polygon", { points: "3 11 22 2 13 21 11 13 3 11", key: "1ltx0t" }]]
 };
-__iconData$k.node;
-const Navigation = createLucideIcon(__iconData$k);
+__iconData$n.node;
+const Navigation = createLucideIcon(__iconData$n);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$j = {
+const __iconData$m = {
+  name: "pen",
+  size: 24,
+  node: [
+    [
+      "path",
+      {
+        d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+        key: "1a8usu"
+      }
+    ]
+  ],
+  aliases: ["edit-2"]
+};
+__iconData$m.node;
+const Pen = createLucideIcon(__iconData$m);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$l = {
   name: "phone-call",
   size: 24,
   node: [
@@ -15955,15 +16238,15 @@ const __iconData$j = {
     ]
   ]
 };
-__iconData$j.node;
-const PhoneCall = createLucideIcon(__iconData$j);
+__iconData$l.node;
+const PhoneCall = createLucideIcon(__iconData$l);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$i = {
+const __iconData$k = {
   name: "phone",
   size: 24,
   node: [
@@ -15976,15 +16259,15 @@ const __iconData$i = {
     ]
   ]
 };
-__iconData$i.node;
-const Phone = createLucideIcon(__iconData$i);
+__iconData$k.node;
+const Phone = createLucideIcon(__iconData$k);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$h = {
+const __iconData$j = {
   name: "plus",
   size: 24,
   node: [
@@ -15992,15 +16275,15 @@ const __iconData$h = {
     ["path", { d: "M12 5v14", key: "s699le" }]
   ]
 };
-__iconData$h.node;
-const Plus = createLucideIcon(__iconData$h);
+__iconData$j.node;
+const Plus = createLucideIcon(__iconData$j);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$g = {
+const __iconData$i = {
   name: "printer",
   size: 24,
   node: [
@@ -16015,15 +16298,15 @@ const __iconData$g = {
     ["rect", { x: "6", y: "14", width: "12", height: "8", rx: "1", key: "1ue0tg" }]
   ]
 };
-__iconData$g.node;
-const Printer = createLucideIcon(__iconData$g);
+__iconData$i.node;
+const Printer = createLucideIcon(__iconData$i);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$f = {
+const __iconData$h = {
   name: "refresh-cw",
   size: 24,
   node: [
@@ -16033,15 +16316,15 @@ const __iconData$f = {
     ["path", { d: "M8 16H3v5", key: "1cv678" }]
   ]
 };
-__iconData$f.node;
-const RefreshCw = createLucideIcon(__iconData$f);
+__iconData$h.node;
+const RefreshCw = createLucideIcon(__iconData$h);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$e = {
+const __iconData$g = {
   name: "rotate-ccw-clock",
   size: 24,
   node: [
@@ -16051,15 +16334,15 @@ const __iconData$e = {
   ],
   aliases: ["history"]
 };
-__iconData$e.node;
-const RotateCcwClock = createLucideIcon(__iconData$e);
+__iconData$g.node;
+const RotateCcwClock = createLucideIcon(__iconData$g);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$d = {
+const __iconData$f = {
   name: "rotate-ccw",
   size: 24,
   node: [
@@ -16067,15 +16350,15 @@ const __iconData$d = {
     ["path", { d: "M3 3v5h5", key: "1xhq8a" }]
   ]
 };
-__iconData$d.node;
-const RotateCcw = createLucideIcon(__iconData$d);
+__iconData$f.node;
+const RotateCcw = createLucideIcon(__iconData$f);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$c = {
+const __iconData$e = {
   name: "search",
   size: 24,
   node: [
@@ -16083,15 +16366,15 @@ const __iconData$c = {
     ["circle", { cx: "11", cy: "11", r: "8", key: "4ej97u" }]
   ]
 };
-__iconData$c.node;
-const Search = createLucideIcon(__iconData$c);
+__iconData$e.node;
+const Search = createLucideIcon(__iconData$e);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$b = {
+const __iconData$d = {
   name: "shield-check",
   size: 24,
   node: [
@@ -16105,15 +16388,15 @@ const __iconData$b = {
     ["path", { d: "m9 12 2 2 4-4", key: "dzmm74" }]
   ]
 };
-__iconData$b.node;
-const ShieldCheck = createLucideIcon(__iconData$b);
+__iconData$d.node;
+const ShieldCheck = createLucideIcon(__iconData$d);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$a = {
+const __iconData$c = {
   name: "shield-exclamation-point",
   size: 24,
   node: [
@@ -16129,15 +16412,15 @@ const __iconData$a = {
   ],
   aliases: ["shield-alert"]
 };
-__iconData$a.node;
-const ShieldExclamationPoint = createLucideIcon(__iconData$a);
+__iconData$c.node;
+const ShieldExclamationPoint = createLucideIcon(__iconData$c);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$9 = {
+const __iconData$b = {
   name: "sparkles",
   size: 24,
   node: [
@@ -16154,15 +16437,15 @@ const __iconData$9 = {
   ],
   aliases: ["stars"]
 };
-__iconData$9.node;
-const Sparkles = createLucideIcon(__iconData$9);
+__iconData$b.node;
+const Sparkles = createLucideIcon(__iconData$b);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
  * This source code is licensed under the ISC license.
  * See the LICENSE file in the root directory of this source tree.
  */
-const __iconData$8 = {
+const __iconData$a = {
   name: "square-pen",
   size: 24,
   node: [
@@ -16177,8 +16460,47 @@ const __iconData$8 = {
   ],
   aliases: ["pen-box", "edit", "pen-square"]
 };
+__iconData$a.node;
+const SquarePen = createLucideIcon(__iconData$a);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$9 = {
+  name: "stethoscope",
+  size: 24,
+  node: [
+    ["path", { d: "M11 2v2", key: "1539x4" }],
+    ["path", { d: "M5 2v2", key: "1yf1q8" }],
+    ["path", { d: "M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1", key: "rb5t3r" }],
+    ["path", { d: "M8 15a6 6 0 0 0 12 0v-3", key: "x18d4x" }],
+    ["circle", { cx: "20", cy: "10", r: "2", key: "ts1r5v" }]
+  ]
+};
+__iconData$9.node;
+const Stethoscope = createLucideIcon(__iconData$9);
+/**
+ * @license lucide-react v1.72.0 - ISC
+ *
+ * This source code is licensed under the ISC license.
+ * See the LICENSE file in the root directory of this source tree.
+ */
+const __iconData$8 = {
+  name: "syringe",
+  size: 24,
+  node: [
+    ["path", { d: "m18 2 4 4", key: "22kx64" }],
+    ["path", { d: "m17 7 3-3", key: "1w1zoj" }],
+    ["path", { d: "M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5", key: "1exhtz" }],
+    ["path", { d: "m9 11 4 4", key: "rovt3i" }],
+    ["path", { d: "m5 19-3 3", key: "59f2uf" }],
+    ["path", { d: "m14 4 6 6", key: "yqp9t2" }]
+  ]
+};
 __iconData$8.node;
-const SquarePen = createLucideIcon(__iconData$8);
+const Syringe = createLucideIcon(__iconData$8);
 /**
  * @license lucide-react v1.72.0 - ISC
  *
@@ -16619,16 +16941,585 @@ const CARE_CATEGORY_CONFIG = {
     dotColor: "#ef4444"
   }
 };
+const APPOINTMENT_TYPE_CONFIG = {
+  home_visit: {
+    label: "เยี่ยมบ้านผู้ป่วยติดเตียง/ติดบ้าน",
+    icon: House,
+    colorClass: "text-rose-700",
+    bgClass: "bg-rose-50",
+    borderClass: "border-rose-200"
+  },
+  vitals_check: {
+    label: "ตรวจวัดความดัน/เจาะน้ำตาล (DTX)",
+    icon: Activity,
+    colorClass: "text-emerald-700",
+    bgClass: "bg-emerald-50",
+    borderClass: "border-emerald-200"
+  },
+  hospital_visit: {
+    label: "พบแพทย์/รับยาที่ รพ.สต. หรือ รพ.",
+    icon: Stethoscope,
+    colorClass: "text-blue-700",
+    bgClass: "bg-blue-50",
+    borderClass: "border-blue-200"
+  },
+  vaccine: {
+    label: "นัดฉีดวัคซีน (ไข้หวัดใหญ่/เด็ก/ผู้สูงอายุ)",
+    icon: Syringe,
+    colorClass: "text-purple-700",
+    bgClass: "bg-purple-50",
+    borderClass: "border-purple-200"
+  },
+  larva_survey: {
+    label: "สำรวจลูกน้ำยุงลายและสุขาภิบาลรอบบ้าน",
+    icon: Bug,
+    colorClass: "text-amber-700",
+    bgClass: "bg-amber-50",
+    borderClass: "border-amber-200"
+  },
+  other: {
+    label: "นัดหมายอื่นๆ",
+    icon: CircleQuestionMark,
+    colorClass: "text-slate-700",
+    bgClass: "bg-slate-50",
+    borderClass: "border-slate-200"
+  }
+};
+const PersonalAppointmentModal = ({
+  isOpen,
+  person,
+  household,
+  vhvMembers,
+  onClose,
+  onAppointmentsChange
+}) => {
+  const [appointments, setAppointments] = reactExports.useState([]);
+  const [isAdding, setIsAdding] = reactExports.useState(false);
+  const [editingAppointmentId, setEditingAppointmentId] = reactExports.useState(null);
+  const [title, setTitle] = reactExports.useState("");
+  const [type, setType] = reactExports.useState("home_visit");
+  const [date, setDate] = reactExports.useState((/* @__PURE__ */ new Date()).toISOString().split("T")[0]);
+  const [time, setTime] = reactExports.useState("09:00");
+  const [location, setLocation] = reactExports.useState("");
+  const [vhvMemberId, setVhvMemberId] = reactExports.useState("");
+  const [notes, setNotes] = reactExports.useState("");
+  const [calendarMonth, setCalendarMonth] = reactExports.useState(() => {
+    const d = /* @__PURE__ */ new Date();
+    return new Date(d.getFullYear(), d.getMonth(), 1);
+  });
+  const loadAppointments = () => {
+    if (person) {
+      const list = storage.getAppointmentsByPerson(person.id);
+      setAppointments(list);
+    }
+  };
+  reactExports.useEffect(() => {
+    if (person && isOpen) {
+      loadAppointments();
+      setIsAdding(false);
+      setEditingAppointmentId(null);
+      resetForm();
+    }
+  }, [person, isOpen]);
+  const resetForm = () => {
+    var _a;
+    setTitle("");
+    setType("home_visit");
+    const tomorrow = /* @__PURE__ */ new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    setDate(tomorrow.toISOString().split("T")[0]);
+    setTime("09:30");
+    setLocation(household ? `บ้านเลขที่ ${household.houseNo} หมู่ ${household.villageNo}` : "บ้านผู้ป่วย");
+    setVhvMemberId((household == null ? void 0 : household.vhvMemberId) || ((_a = vhvMembers[0]) == null ? void 0 : _a.id) || "");
+    setNotes("");
+  };
+  if (!isOpen || !person) return null;
+  const age = calculateAge(person.birthDate);
+  const careConfig = CARE_CATEGORY_CONFIG[person.careCategory];
+  const handleStartAdd = () => {
+    resetForm();
+    setEditingAppointmentId(null);
+    setIsAdding(true);
+  };
+  const handleStartEdit = (apt) => {
+    setTitle(apt.title);
+    setType(apt.type);
+    setDate(apt.date);
+    setTime(apt.time || "09:00");
+    setLocation(apt.location);
+    setVhvMemberId(apt.vhvMemberId);
+    setNotes(apt.notes || "");
+    setEditingAppointmentId(apt.id);
+    setIsAdding(true);
+  };
+  const handleCancelForm = () => {
+    setIsAdding(false);
+    setEditingAppointmentId(null);
+  };
+  const handleSaveForm = (e) => {
+    var _a;
+    e.preventDefault();
+    if (!title.trim() || !date) {
+      alert("กรุณากรอกหัวข้อนัดหมายและเลือกวันที่");
+      return;
+    }
+    const payload = {
+      id: editingAppointmentId || `apt-${Date.now()}`,
+      personId: person.id,
+      householdId: person.householdId,
+      villageNo: person.villageNo,
+      vhvMemberId: vhvMemberId || "vhv-1",
+      title: title.trim(),
+      type,
+      date,
+      time: time || void 0,
+      location: location.trim() || "บ้านผู้ป่วย",
+      status: "upcoming",
+      notes: notes.trim() || void 0,
+      createdAt: editingAppointmentId ? ((_a = appointments.find((a) => a.id === editingAppointmentId)) == null ? void 0 : _a.createdAt) || (/* @__PURE__ */ new Date()).toISOString() : (/* @__PURE__ */ new Date()).toISOString(),
+      updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    storage.saveAppointment(payload);
+    loadAppointments();
+    onAppointmentsChange();
+    setIsAdding(false);
+    setEditingAppointmentId(null);
+  };
+  const handleStatusChange = (aptId, status) => {
+    storage.updateAppointmentStatus(aptId, status);
+    loadAppointments();
+    onAppointmentsChange();
+  };
+  const handleDelete = (aptId) => {
+    if (confirm("ยืนยันการลบนัดหมายนี้หรือไม่?")) {
+      storage.deleteAppointment(aptId);
+      loadAppointments();
+      onAppointmentsChange();
+    }
+  };
+  const daysInMonth = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 0).getDate();
+  const firstDayOfWeek = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth(), 1).getDay();
+  const monthNameThai = [
+    "มกราคม",
+    "กุมภาพันธ์",
+    "มีนาคม",
+    "เมษายน",
+    "พฤษภาคม",
+    "มิถุนายน",
+    "กรกฎาคม",
+    "สิงหาคม",
+    "กันยายน",
+    "ตุลาคม",
+    "พฤศจิกายน",
+    "ธันวาคม"
+  ][calendarMonth.getMonth()];
+  const yearThai = calendarMonth.getFullYear() + 543;
+  const handlePrevMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() - 1, 1));
+  };
+  const handleNextMonth = () => {
+    setCalendarMonth(new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + 1, 1));
+  };
+  return /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-2xl shadow-xl w-full max-w-4xl my-8 overflow-hidden flex flex-col max-h-[92vh]", children: [
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "px-6 py-4 bg-emerald-700 text-white flex items-center justify-between", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "w-10 h-10 rounded-xl bg-emerald-800 text-emerald-200 flex items-center justify-center", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-5 h-5 text-emerald-300" }) }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-lg font-bold", children: "ปฏิทินนัดหมายและลงพื้นที่รายบุคคล" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[11px] font-semibold px-2 py-0.5 rounded-full ${careConfig.badgeClass}`, children: careConfig.shortLabel })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-emerald-100", children: [
+            person.title,
+            person.firstName,
+            " ",
+            person.lastName,
+            " • อายุ ",
+            age,
+            " ปี • บ้านเลขที่ ",
+            (household == null ? void 0 : household.houseNo) || "-",
+            " หมู่ ",
+            person.villageNo
+          ] })
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsx(
+        "button",
+        {
+          onClick: onClose,
+          className: "p-1 rounded-lg text-emerald-200 hover:text-white hover:bg-emerald-800 transition-colors",
+          children: /* @__PURE__ */ jsxRuntimeExports.jsx(X, { className: "w-5 h-5" })
+        }
+      )
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-6 overflow-y-auto space-y-6", children: [
+      !isAdding && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between bg-emerald-50/70 p-4 rounded-xl border border-emerald-100", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-xs text-emerald-900", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold", children: [
+            "นัดหมายทั้งหมดของ ",
+            person.firstName,
+            ": "
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+            "มี ",
+            appointments.filter((a) => a.status === "upcoming").length,
+            " นัดหมายที่รอลงพื้นที่"
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: handleStartAdd,
+            className: "flex items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-semibold transition-colors shadow-xs",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(Plus, { className: "w-4 h-4" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "+ เพิ่มนัดหมายใหม่" })
+            ]
+          }
+        )
+      ] }),
+      isAdding && /* @__PURE__ */ jsxRuntimeExports.jsxs("form", { onSubmit: handleSaveForm, className: "bg-slate-50 p-5 rounded-2xl border border-emerald-200 space-y-4 animate-in fade-in", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between border-b border-slate-200 pb-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-sm text-slate-800", children: editingAppointmentId ? "แก้ไขข้อมูลการนัดหมาย" : "สร้างการนัดหมาย / วางแผนลงพื้นที่ใหม่" }),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: handleCancelForm,
+              className: "text-xs text-slate-500 hover:text-slate-700",
+              children: "✕ ยกเลิก"
+            }
+          )
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "block font-semibold text-slate-700 mb-1", children: [
+              "หัวข้อนัดหมาย ",
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-rose-500", children: "*" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "text",
+                required: true,
+                placeholder: "เช่น เยี่ยมบ้านติดตามแผลกดทับ, ตรวจ DTX",
+                value: title,
+                onChange: (e) => setTitle(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "block font-semibold text-slate-700 mb-1", children: [
+              "ประเภทการนัดหมาย ",
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-rose-500", children: "*" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs(
+              "select",
+              {
+                value: type,
+                onChange: (e) => setType(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none focus:border-emerald-500",
+                children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "home_visit", children: "🏠 เยี่ยมบ้านผู้ป่วยติดเตียงและติดบ้าน" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "vitals_check", children: "🩺 นัดตรวจวัดความดันและเจาะน้ำตาลปลายนิ้ว (DTX)" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "hospital_visit", children: "🏥 นัดพบแพทย์และรับยาประจำที่ รพ.สต. หรือ รพ." }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "vaccine", children: "💉 นัดฉีดวัคซีน (ไข้หวัดใหญ่/เด็ก/ผู้สูงอายุ)" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "larva_survey", children: "🦟 นัดสำรวจลูกน้ำยุงลายและสุขาภิบาลรอบบ้าน" }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("option", { value: "other", children: "📋 นัดหมายอื่นๆ" })
+                ]
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("label", { className: "block font-semibold text-slate-700 mb-1", children: [
+              "วันที่นัดหมาย ",
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-rose-500", children: "*" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "date",
+                required: true,
+                value: date,
+                onChange: (e) => setDate(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block font-semibold text-slate-700 mb-1", children: "เวลานัดหมาย" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "time",
+                value: time,
+                onChange: (e) => setTime(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block font-semibold text-slate-700 mb-1", children: "สถานที่นัดหมาย" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "text",
+                placeholder: "เช่น บ้านผู้ป่วย, รพ.สต.",
+                value: location,
+                onChange: (e) => setLocation(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block font-semibold text-slate-700 mb-1", children: "อสม. ผู้รับผิดชอบ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "select",
+              {
+                value: vhvMemberId,
+                onChange: (e) => setVhvMemberId(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none",
+                children: vhvMembers.map((vhv) => /* @__PURE__ */ jsxRuntimeExports.jsxs("option", { value: vhv.id, children: [
+                  vhv.name,
+                  " (",
+                  vhv.zoneName,
+                  ")"
+                ] }, vhv.id))
+              }
+            )
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("label", { className: "block font-semibold text-slate-700 mb-1", children: "หมายเหตุ / คำแนะนำการเตรียมตัว" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "input",
+              {
+                type: "text",
+                placeholder: "เช่น อดอาหาร 8 ชม., เตรียมสมุดประจำตัวผู้ป่วย",
+                value: notes,
+                onChange: (e) => setNotes(e.target.value),
+                className: "w-full px-3 py-2 bg-white border border-slate-300 rounded-lg outline-none"
+              }
+            )
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex justify-end gap-2 pt-2", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "button",
+              onClick: handleCancelForm,
+              className: "px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-200 rounded-lg transition-colors",
+              children: "ยกเลิก"
+            }
+          ),
+          /* @__PURE__ */ jsxRuntimeExports.jsx(
+            "button",
+            {
+              type: "submit",
+              className: "px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold transition-colors shadow-xs",
+              children: editingAppointmentId ? "บันทึกการแก้ไข" : "บันทึกการนัดหมาย"
+            }
+          )
+        ] })
+      ] }),
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-1 lg:grid-cols-5 gap-6", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "lg:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-between", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-bold text-xs text-slate-800", children: [
+              monthNameThai,
+              " ",
+              yearThai
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: handlePrevMonth,
+                  className: "p-1 hover:bg-slate-200 rounded text-slate-600",
+                  title: "เดือนก่อนหน้า",
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronLeft, { className: "w-4 h-4" })
+                }
+              ),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(
+                "button",
+                {
+                  onClick: handleNextMonth,
+                  className: "p-1 hover:bg-slate-200 rounded text-slate-600",
+                  title: "เดือนถัดไป",
+                  children: /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "w-4 h-4" })
+                }
+              )
+            ] })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-7 text-center text-[10px] font-semibold text-slate-400", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "อา" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "จ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "อ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "พ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "พฤ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ศ" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ส" })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "grid grid-cols-7 gap-1 text-xs", children: [
+            Array.from({ length: firstDayOfWeek }).map((_, i) => /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "h-8" }, `empty-${i}`)),
+            Array.from({ length: daysInMonth }).map((_, i) => {
+              const dayNum = i + 1;
+              const monthStr = String(calendarMonth.getMonth() + 1).padStart(2, "0");
+              const dayStr = String(dayNum).padStart(2, "0");
+              const dateStr = `${calendarMonth.getFullYear()}-${monthStr}-${dayStr}`;
+              const dayApts = appointments.filter((a) => a.date === dateStr);
+              const hasUpcoming = dayApts.some((a) => a.status === "upcoming");
+              const hasCompleted = dayApts.some((a) => a.status === "completed");
+              const isToday = (/* @__PURE__ */ new Date()).toISOString().split("T")[0] === dateStr;
+              return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                "div",
+                {
+                  className: `h-8 rounded-lg flex flex-col items-center justify-center relative transition-colors ${isToday ? "bg-emerald-100 font-bold text-emerald-800 border border-emerald-300" : "hover:bg-slate-200 text-slate-700"}`,
+                  children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-[11px]", children: dayNum }),
+                    dayApts.length > 0 && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex gap-0.5 mt-0.5", children: [
+                      hasUpcoming && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-1.5 h-1.5 rounded-full bg-rose-500" }),
+                      hasCompleted && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-1.5 h-1.5 rounded-full bg-emerald-500" })
+                    ] })
+                  ]
+                },
+                `day-${dayNum}`
+              );
+            })
+          ] }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "pt-2 border-t border-slate-200 text-[11px] text-slate-500 space-y-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1.5", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-2 h-2 rounded-full bg-rose-500 inline-block" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "นัดหมายที่กำลังจะมาถึง" })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1.5", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "w-2 h-2 rounded-full bg-emerald-500 inline-block" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "เสร็จสิ้นแล้ว" })
+            ] })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "lg:col-span-3 space-y-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center justify-between", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("h3", { className: "font-bold text-sm text-slate-800 flex items-center gap-1.5", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(CalendarDays, { className: "w-4 h-4 text-emerald-600" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { children: [
+              "รายการนัดหมาย (",
+              appointments.length,
+              " รายการ)"
+            ] })
+          ] }) }),
+          appointments.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-10 h-10 mx-auto text-slate-300 mb-2" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs font-semibold text-slate-600", children: "ยังไม่มีนัดหมายส่วนบุคคลสำหรับประชากรท่านนี้" }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-slate-400 mt-1", children: 'คลิก "+ เพิ่มนัดหมายใหม่" เพื่อกำหนดแผนการลงพื้นที่' })
+          ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "space-y-2.5 max-h-[380px] overflow-y-auto pr-1", children: appointments.map((apt) => {
+            const typeConfig = APPOINTMENT_TYPE_CONFIG[apt.type] || APPOINTMENT_TYPE_CONFIG.other;
+            const IconComp = typeConfig.icon;
+            const vhv = vhvMembers.find((v) => v.id === apt.vhvMemberId);
+            return /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "div",
+              {
+                className: `p-3.5 rounded-xl border transition-all ${apt.status === "completed" ? "bg-emerald-50/40 border-emerald-200 opacity-90" : apt.status === "cancelled" ? "bg-slate-50 border-slate-200 opacity-60" : "bg-white border-slate-200 shadow-xs hover:border-emerald-300"}`,
+                children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start justify-between gap-2", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start gap-2.5", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: `p-2 rounded-lg ${typeConfig.bgClass} ${typeConfig.colorClass} shrink-0 mt-0.5`, children: /* @__PURE__ */ jsxRuntimeExports.jsx(IconComp, { className: "w-4 h-4" }) }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-1.5", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-slate-900 text-xs sm:text-sm", children: apt.title }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[10px] font-semibold px-2 py-0.5 rounded-full ${typeConfig.bgClass} ${typeConfig.colorClass} border ${typeConfig.borderClass}`, children: typeConfig.label })
+                      ] }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-x-3 gap-y-1 mt-1 text-[11px] text-slate-600", children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1", children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "w-3.5 h-3.5 text-slate-400" }),
+                          formatThaiDate(apt.date),
+                          " ",
+                          apt.time && `เวลา ${apt.time} น.`
+                        ] }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1", children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(MapPin, { className: "w-3.5 h-3.5 text-slate-400" }),
+                          apt.location
+                        ] })
+                      ] }),
+                      apt.notes && /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-[11px] text-slate-500 mt-1 bg-slate-50 px-2 py-1 rounded border border-slate-100", children: apt.notes }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[10px] text-slate-400 mt-1", children: [
+                        "อสม. ผู้รับผิดชอบ: ",
+                        (vhv == null ? void 0 : vhv.name) || "-"
+                      ] })
+                    ] })
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-end gap-1.5 shrink-0", children: [
+                    apt.status === "upcoming" && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "button",
+                      {
+                        onClick: () => handleStatusChange(apt.id, "completed"),
+                        className: "flex items-center gap-1 px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-[11px] font-semibold transition-colors shadow-xs",
+                        title: "ทำเครื่องหมายว่าลงพื้นที่/ดำเนินการเสร็จสิ้นแล้ว",
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "w-3 h-3" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "เสร็จสิ้น" })
+                        ]
+                      }
+                    ),
+                    apt.status === "completed" && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(CircleCheck, { className: "w-3 h-3" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ดำเนินการแล้ว" })
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-1", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "button",
+                        {
+                          onClick: () => handleStartEdit(apt),
+                          className: "p-1 text-slate-400 hover:text-emerald-700 hover:bg-slate-100 rounded",
+                          title: "แก้ไขนัดหมาย",
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Pen, { className: "w-3.5 h-3.5" })
+                        }
+                      ),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(
+                        "button",
+                        {
+                          onClick: () => handleDelete(apt.id),
+                          className: "p-1 text-slate-400 hover:text-rose-600 hover:bg-slate-100 rounded",
+                          title: "ลบนัดหมาย",
+                          children: /* @__PURE__ */ jsxRuntimeExports.jsx(Trash, { className: "w-3.5 h-3.5" })
+                        }
+                      )
+                    ] })
+                  ] })
+                ] })
+              },
+              apt.id
+            );
+          }) })
+        ] })
+      ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-end", children: /* @__PURE__ */ jsxRuntimeExports.jsx(
+      "button",
+      {
+        onClick: onClose,
+        className: "px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-xl text-xs font-semibold transition-colors",
+        children: "ปิดหน้าต่าง"
+      }
+    ) })
+  ] }) });
+};
 const Dashboard = ({
   households,
   persons,
   screenings,
   villages,
   selectedVillageNo,
+  appointments = [],
+  vhvMembers = [],
   onNavigateTab,
   onOpenAddHousehold,
   onOpenAddPerson,
-  onOpenScreening
+  onOpenScreening,
+  onOpenAppointments
 }) => {
   var _a;
   const totalHouseholds = households.length;
@@ -16651,6 +17542,25 @@ const Dashboard = ({
     (p) => p.careCategory === "bedridden" || p.systolic && p.systolic >= 140 || p.diastolic && p.diastolic >= 90 || p.bloodSugarDtx && p.bloodSugarDtx >= 180
   );
   const selectedVillageName = selectedVillageNo === 0 ? "ทุกหมู่บ้านในเขตรับผิดชอบ" : ((_a = villages.find((v) => v.no === selectedVillageNo)) == null ? void 0 : _a.name) || `หมู่ ${selectedVillageNo}`;
+  const today = /* @__PURE__ */ new Date();
+  today.setHours(0, 0, 0, 0);
+  const getRelativeDayInfo = (dateStr) => {
+    const target = new Date(dateStr);
+    target.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target.getTime() - today.getTime()) / (1e3 * 60 * 60 * 24));
+    if (diffDays === 0) return { label: "วันนี้", badgeClass: "bg-rose-100 text-rose-700 border-rose-300 font-bold animate-pulse" };
+    if (diffDays === 1) return { label: "พรุ่งนี้", badgeClass: "bg-amber-100 text-amber-800 border-amber-300 font-semibold" };
+    if (diffDays < 0) return { label: `เลยกำหนด ${Math.abs(diffDays)} วัน`, badgeClass: "bg-rose-50 text-rose-600 border-rose-200" };
+    return { label: `อีก ${diffDays} วัน`, badgeClass: "bg-blue-50 text-blue-700 border-blue-200 font-medium" };
+  };
+  const upcomingAppointments = appointments.filter((a) => {
+    if (a.status !== "upcoming") return false;
+    if (selectedVillageNo !== 0 && a.villageNo !== selectedVillageNo) return false;
+    const target = new Date(a.date);
+    target.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target.getTime() - today.getTime()) / (1e3 * 60 * 60 * 24));
+    return diffDays >= -2 && diffDays <= 7;
+  }).sort((a, b) => (/* @__PURE__ */ new Date(`${a.date}T${a.time || "00:00"}`)).getTime() - (/* @__PURE__ */ new Date(`${b.date}T${b.time || "00:00"}`)).getTime());
   return /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "space-y-6 pb-12", children: [
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-gradient-to-r from-emerald-700 to-teal-800 rounded-2xl p-6 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
@@ -16931,6 +17841,145 @@ const Dashboard = ({
           )
         ] })
       ] })
+    ] }),
+    /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden", children: [
+      /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/70 to-indigo-50/40", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-3", children: [
+          /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "p-2.5 rounded-xl bg-blue-600 text-white shadow-xs", children: /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-5 h-5" }) }),
+          /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2", children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("h2", { className: "text-base font-bold text-slate-800", children: "เตือนนัดหมายและลงพื้นที่เร็วๆ นี้ (3 - 7 วันข้างหน้า)" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200", children: [
+                upcomingAppointments.length,
+                " รายการ"
+              ] })
+            ] }),
+            /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-slate-500 mt-0.5", children: "ติดตามนัดตรวจคัดกรอง, นัดพบแพทย์/รับยา, ฉีดวัคซีน, และเยี่ยมบ้านผู้ป่วย" })
+          ] })
+        ] }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "flex items-center gap-2 self-start sm:self-auto", children: /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "button",
+          {
+            onClick: () => onNavigateTab("persons"),
+            className: "text-xs font-semibold text-blue-700 hover:text-blue-800 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200/80 transition-colors inline-flex items-center gap-1 shadow-2xs",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ดูทะเบียนประชากรทั้งหมด" }),
+              /* @__PURE__ */ jsxRuntimeExports.jsx(ChevronRight, { className: "w-3.5 h-3.5" })
+            ]
+          }
+        ) })
+      ] }),
+      upcomingAppointments.length === 0 ? /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-8 text-center text-slate-400", children: [
+        /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-10 h-10 mx-auto text-slate-300 mb-2" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-sm font-medium text-slate-600", children: "ไม่มีนัดหมายที่ใกล้ถึงกำหนดในช่วง 7 วันข้างหน้า" }),
+        /* @__PURE__ */ jsxRuntimeExports.jsx("p", { className: "text-xs text-slate-400 mt-0.5", children: "คุณสามารถสร้างนัดหมายรายบุคคลได้จากหน้ารายละเอียดประชากรหรือสมาชิกในหลังคาเรือน" })
+      ] }) : /* @__PURE__ */ jsxRuntimeExports.jsx("div", { className: "divide-y divide-slate-100", children: upcomingAppointments.map((apt) => {
+        const person = persons.find((p) => p.id === apt.personId);
+        const house = households.find((h) => h.id === apt.householdId);
+        const typeCfg = APPOINTMENT_TYPE_CONFIG[apt.type] || APPOINTMENT_TYPE_CONFIG.other;
+        const TypeIcon = typeCfg.icon;
+        const relDay = getRelativeDayInfo(apt.date);
+        const vhv = vhvMembers.find((v) => v.id === apt.vhvMemberId);
+        const careConfig = person ? CARE_CATEGORY_CONFIG[person.careCategory] : null;
+        return /* @__PURE__ */ jsxRuntimeExports.jsxs(
+          "div",
+          {
+            className: "p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors",
+            children: [
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-start gap-3.5", children: [
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-col items-center justify-center min-w-[76px] px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-center shrink-0", children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[10px] font-bold px-1.5 py-0.5 rounded-full border mb-1 ${relDay.badgeClass}`, children: relDay.label }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-xs font-bold text-slate-800", children: formatThaiDate(apt.date) }),
+                  apt.time && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-[11px] text-slate-500 flex items-center gap-0.5 mt-0.5", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx(Clock, { className: "w-3 h-3 text-slate-400" }),
+                    apt.time,
+                    " น."
+                  ] })
+                ] }),
+                /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { children: [
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-bold text-slate-900 text-sm sm:text-base", children: apt.title }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                      "span",
+                      {
+                        className: `inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${typeCfg.bgClass} ${typeCfg.colorClass} ${typeCfg.borderClass}`,
+                        children: [
+                          /* @__PURE__ */ jsxRuntimeExports.jsx(TypeIcon, { className: "w-3 h-3" }),
+                          /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: typeCfg.label })
+                        ]
+                      }
+                    )
+                  ] }),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-600", children: [
+                    person ? /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-medium text-slate-800 flex items-center gap-1", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "ผู้ป่วย/ประชากร:" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "font-semibold underline decoration-slate-300", children: [
+                        person.title,
+                        person.firstName,
+                        " ",
+                        person.lastName
+                      ] }),
+                      careConfig && /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: `text-[10px] px-1.5 py-0.2 rounded-full font-medium ${careConfig.badgeClass}`, children: careConfig.shortLabel })
+                    ] }) : /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "text-slate-500", children: [
+                      "รหัสบุคคล: ",
+                      apt.personId
+                    ] }),
+                    /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1 text-slate-500", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(House, { className: "w-3.5 h-3.5 text-slate-400" }),
+                      "บ้านเลขที่ ",
+                      (house == null ? void 0 : house.houseNo) || "-",
+                      " หมู่ ",
+                      apt.villageNo
+                    ] }),
+                    apt.location && /* @__PURE__ */ jsxRuntimeExports.jsxs("span", { className: "flex items-center gap-1 text-slate-500", children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(MapPin, { className: "w-3.5 h-3.5 text-slate-400" }),
+                      apt.location
+                    ] })
+                  ] }),
+                  apt.notes && /* @__PURE__ */ jsxRuntimeExports.jsxs("p", { className: "text-xs text-slate-500 mt-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 line-clamp-2", children: [
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "font-medium text-slate-600", children: "หมายเหตุ: " }),
+                    apt.notes
+                  ] }),
+                  vhv && /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "text-[11px] text-slate-400 mt-1", children: [
+                    "อสม. ผู้รับผิดชอบ: ",
+                    /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "text-slate-600 font-medium", children: vhv.name }),
+                    " (",
+                    vhv.phone,
+                    ")"
+                  ] })
+                ] })
+              ] }),
+              /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center gap-2 self-end md:self-auto shrink-0", children: [
+                person && onOpenAppointments && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    onClick: () => onOpenAppointments(person),
+                    className: "flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs hover:shadow",
+                    title: "เปิดปฏิทินนัดหมายรายบุคคล",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-3.5 h-3.5" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "เปิดปฏิทินนัดหมาย" })
+                    ]
+                  }
+                ),
+                person && /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                  "button",
+                  {
+                    onClick: () => onOpenScreening(person),
+                    className: "flex items-center gap-1 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold transition-colors",
+                    title: "บันทึกคัดกรองสุขภาพ",
+                    children: [
+                      /* @__PURE__ */ jsxRuntimeExports.jsx(ClipboardList, { className: "w-3.5 h-3.5" }),
+                      /* @__PURE__ */ jsxRuntimeExports.jsx("span", { className: "hidden sm:inline", children: "คัดกรอง" })
+                    ]
+                  }
+                )
+              ] })
+            ]
+          },
+          apt.id
+        );
+      }) })
     ] }),
     /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden", children: [
       /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2", children: [
@@ -17665,7 +18714,8 @@ const HouseholdDetailModal = ({
   onAddMember,
   onEditMember,
   onDeleteMember,
-  onScreenMember
+  onScreenMember,
+  onOpenAppointments
 }) => {
   if (!isOpen || !household) return null;
   const members = persons.filter((p) => p.householdId === household.id);
@@ -17816,6 +18866,18 @@ const HouseholdDetailModal = ({
                   /* @__PURE__ */ jsxRuntimeExports.jsxs(
                     "button",
                     {
+                      onClick: () => onOpenAppointments(person),
+                      className: "flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold transition-colors",
+                      title: "ปฏิทินนัดหมายและลงพื้นที่รายบุคคล",
+                      children: [
+                        /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-3.5 h-3.5" }),
+                        /* @__PURE__ */ jsxRuntimeExports.jsx("span", { children: "นัดหมาย" })
+                      ]
+                    }
+                  ),
+                  /* @__PURE__ */ jsxRuntimeExports.jsxs(
+                    "button",
+                    {
                       onClick: () => onScreenMember(person),
                       className: "flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold transition-colors",
                       title: "บันทึกคัดกรองสุขภาพ",
@@ -17873,7 +18935,8 @@ const Persons = ({
   onAddPerson,
   onEditPerson,
   onDeletePerson,
-  onOpenScreening
+  onOpenScreening,
+  onOpenAppointments
 }) => {
   const [searchTerm, setSearchTerm] = reactExports.useState("");
   const [careFilter, setCareFilter] = reactExports.useState("all");
@@ -18101,6 +19164,15 @@ const Persons = ({
             ] })
           ] }) }),
           /* @__PURE__ */ jsxRuntimeExports.jsx("td", { className: "py-3 px-4 text-right", children: /* @__PURE__ */ jsxRuntimeExports.jsxs("div", { className: "flex items-center justify-end gap-1", children: [
+            /* @__PURE__ */ jsxRuntimeExports.jsx(
+              "button",
+              {
+                onClick: () => onOpenAppointments(person),
+                className: "p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors",
+                title: "ปฏิทินนัดหมายและลงพื้นที่รายบุคคล",
+                children: /* @__PURE__ */ jsxRuntimeExports.jsx(Calendar, { className: "w-4 h-4" })
+              }
+            ),
             /* @__PURE__ */ jsxRuntimeExports.jsx(
               "button",
               {
@@ -61392,6 +62464,7 @@ const App = () => {
   const [households, setHouseholds] = reactExports.useState([]);
   const [persons, setPersons] = reactExports.useState([]);
   const [screenings, setScreenings] = reactExports.useState([]);
+  const [appointments, setAppointments] = reactExports.useState([]);
   const [isHouseholdModalOpen, setIsHouseholdModalOpen] = reactExports.useState(false);
   const [householdToEdit, setHouseholdToEdit] = reactExports.useState(null);
   const [isHouseholdDetailOpen, setIsHouseholdDetailOpen] = reactExports.useState(false);
@@ -61401,6 +62474,8 @@ const App = () => {
   const [defaultHouseholdIdForPerson, setDefaultHouseholdIdForPerson] = reactExports.useState(void 0);
   const [isScreeningModalOpen, setIsScreeningModalOpen] = reactExports.useState(false);
   const [personForScreening, setPersonForScreening] = reactExports.useState(null);
+  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = reactExports.useState(false);
+  const [personForAppointments, setPersonForAppointments] = reactExports.useState(null);
   const [isDataExchangeOpen, setIsDataExchangeOpen] = reactExports.useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = reactExports.useState(false);
   const [mapFocusedHousehold, setMapFocusedHousehold] = reactExports.useState(null);
@@ -61410,6 +62485,7 @@ const App = () => {
     setHouseholds(storage.getHouseholds());
     setPersons(storage.getPersons());
     setScreenings(storage.getScreenings());
+    setAppointments(storage.getAppointments());
   }, []);
   reactExports.useEffect(() => {
     loadData();
@@ -61479,6 +62555,10 @@ const App = () => {
     storage.deletePerson(id);
     loadData();
   };
+  const handleOpenAppointments = (person) => {
+    setPersonForAppointments(person);
+    setIsAppointmentsModalOpen(true);
+  };
   const handleOpenScreening = (person) => {
     setPersonForScreening(person);
     setIsScreeningModalOpen(true);
@@ -61516,10 +62596,13 @@ const App = () => {
           screenings,
           villages,
           selectedVillageNo,
+          appointments,
+          vhvMembers,
           onNavigateTab: setCurrentTab,
           onOpenAddHousehold: handleOpenAddHousehold,
           onOpenAddPerson: () => handleOpenAddPerson(),
-          onOpenScreening: handleOpenScreening
+          onOpenScreening: handleOpenScreening,
+          onOpenAppointments: handleOpenAppointments
         }
       ),
       currentTab === "households" && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -61547,7 +62630,8 @@ const App = () => {
           onAddPerson: () => handleOpenAddPerson(),
           onEditPerson: handleEditPerson,
           onDeletePerson: handleDeletePerson,
-          onOpenScreening: handleOpenScreening
+          onOpenScreening: handleOpenScreening,
+          onOpenAppointments: handleOpenAppointments
         }
       ),
       currentTab === "map" && /* @__PURE__ */ jsxRuntimeExports.jsx(
@@ -61611,6 +62695,10 @@ const App = () => {
         onScreenMember: (p) => {
           setIsHouseholdDetailOpen(false);
           handleOpenScreening(p);
+        },
+        onOpenAppointments: (p) => {
+          setIsHouseholdDetailOpen(false);
+          handleOpenAppointments(p);
         }
       }
     ),
@@ -61635,6 +62723,20 @@ const App = () => {
         vhvMembers,
         onClose: () => setIsScreeningModalOpen(false),
         onSave: handleSaveScreening
+      }
+    ),
+    /* @__PURE__ */ jsxRuntimeExports.jsx(
+      PersonalAppointmentModal,
+      {
+        isOpen: isAppointmentsModalOpen,
+        person: personForAppointments,
+        household: personForAppointments ? households.find((h) => h.id === personForAppointments.householdId) : null,
+        vhvMembers,
+        onClose: () => {
+          setIsAppointmentsModalOpen(false);
+          setPersonForAppointments(null);
+        },
+        onAppointmentsChange: loadData
       }
     ),
     /* @__PURE__ */ jsxRuntimeExports.jsx(
