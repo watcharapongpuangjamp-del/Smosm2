@@ -58,6 +58,7 @@ export interface Person {
   lastName: string;
   gender: Gender;
   birthDate: string; // YYYY-MM-DD
+  birthDatePrecision?: 'full' | 'year';
   bloodGroup: 'A' | 'B' | 'AB' | 'O' | 'Rh-' | 'Unknown';
   phone?: string;
   occupation?: string;

@@ -160,7 +160,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Households */}
         <div
           onClick={() => onNavigateTab('households')}
-          className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
+          className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -183,7 +183,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Population */}
         <div
           onClick={() => onNavigateTab('persons')}
-          className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
+          className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -193,8 +193,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Users className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-800">{totalPersons}</span>
+          <div className="mt-3 flex items-baseline gap-2 tabular-nums">
+            <span className="text-3xl font-bold text-slate-900">{totalPersons}</span>
             <span className="text-xs text-slate-500">คน</span>
           </div>
           <div className="mt-2 text-xs text-slate-500 flex items-center justify-between">
@@ -206,7 +206,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Elderly */}
         <div
           onClick={() => onNavigateTab('persons')}
-          className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
+          className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -216,8 +216,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <HeartHandshake className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-slate-800">{elderlyCount}</span>
+          <div className="mt-3 flex items-baseline gap-2 tabular-nums">
+            <span className="text-3xl font-bold text-slate-900">{elderlyCount}</span>
             <span className="text-xs text-slate-500">
               คน ({totalPersons > 0 ? ((elderlyCount / totalPersons) * 100).toFixed(0) : 0}%)
             </span>
@@ -230,7 +230,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
         {/* Larva HI Index */}
         <div
           onClick={() => onNavigateTab('households')}
-          className="bg-white p-5 rounded-xl border border-slate-200/80 shadow-xs hover:border-rose-300 hover:shadow-md transition-all cursor-pointer group"
+          className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-rose-300 hover:shadow-md transition-all cursor-pointer group"
         >
           <div className="flex items-center justify-between">
             <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
@@ -246,10 +246,10 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <Bug className="w-5 h-5" />
             </div>
           </div>
-          <div className="mt-3 flex items-baseline gap-2">
+          <div className="mt-3 flex items-baseline gap-2 tabular-nums">
             <span
               className={`text-3xl font-bold ${
-                parseFloat(houseIndexPercent) > 0 ? 'text-rose-600' : 'text-emerald-600'
+                parseFloat(houseIndexPercent) > 0 ? 'text-rose-600' : 'text-slate-900'
               }`}
             >
               {houseIndexPercent}%

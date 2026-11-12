@@ -422,6 +422,7 @@ class StorageService {
 
   clearAllData() {
     localStorage.clear();
+    sessionStorage.clear();
     this.log('delete', 'system', 'ล้างข้อมูลทั้งหมดในระบบ');
   }
 }

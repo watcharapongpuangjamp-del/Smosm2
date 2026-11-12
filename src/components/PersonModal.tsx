@@ -42,6 +42,7 @@ export const PersonModal: React.FC<PersonModalProps> = ({
   const [lastName, setLastName] = useState('');
   const [gender, setGender] = useState<Gender>('male');
   const [birthDate, setBirthDate] = useState('1980-01-01');
+  const [isBirthDateUnknown, setIsBirthDateUnknown] = useState(false);
   const [bloodGroup, setBloodGroup] = useState<Person['bloodGroup']>('O');
   const [householdId, setHouseholdId] = useState('');
   const [villageNo, setVillageNo] = useState<number>(1);
@@ -51,6 +52,7 @@ export const PersonModal: React.FC<PersonModalProps> = ({
   const [residentStatus, setResidentStatus] = useState<ResidentStatus>('resident');
   const [selectedDiseases, setSelectedDiseases] = useState<string[]>([]);
   const [customDisease, setCustomDisease] = useState('');
+  const [birthYear, setBirthYear] = useState(new Date().getFullYear().toString());
 
   // Initial vitals
   const [weightKg, setWeightKg] = useState<number | undefined>(undefined);
@@ -71,6 +73,8 @@ export const PersonModal: React.FC<PersonModalProps> = ({
       setLastName(personToEdit.lastName);
       setGender(personToEdit.gender);
       setBirthDate(personToEdit.birthDate);
+      setIsBirthDateUnknown(personToEdit.birthDatePrecision === 'year');
+      setBirthYear(personToEdit.birthDate.substring(0, 4));
       setBloodGroup(personToEdit.bloodGroup);
       setHouseholdId(personToEdit.householdId);
       setVillageNo(personToEdit.villageNo);
@@ -92,6 +96,8 @@ export const PersonModal: React.FC<PersonModalProps> = ({
       setLastName('');
       setGender('male');
       setBirthDate('1985-06-15');
+      setIsBirthDateUnknown(false);
+      setBirthYear(new Date().getFullYear().toString());
       setBloodGroup('O');
       const targetHouse =
         households.find((h) => h.id === defaultHouseholdId) || households[0];
@@ -148,7 +154,7 @@ export const PersonModal: React.FC<PersonModalProps> = ({
     }
   };
 
-  const calculatedAge = calculateAge(birthDate);
+  const calculatedAge = calculateAge(isBirthDateUnknown ? `${birthYear}-01-01` : birthDate);
   const bmiInfo = weightKg && heightCm ? calculateBmi(weightKg, heightCm) : null;
   const bpInfo = systolic && diastolic ? evaluateBloodPressure(systolic, diastolic) : null;
 
@@ -173,7 +179,8 @@ export const PersonModal: React.FC<PersonModalProps> = ({
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       gender,
-      birthDate,
+      birthDate: isBirthDateUnknown ? `${birthYear}-01-01` : birthDate,
+      birthDatePrecision: isBirthDateUnknown ? 'year' : 'full',
       bloodGroup,
       phone: phone.trim() || undefined,
       occupation: occupation.trim() || undefined,
@@ -196,7 +203,7 @@ export const PersonModal: React.FC<PersonModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl my-8 overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl shadow-2xl border border-slate-100 w-full max-w-3xl my-8 overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
         <div className="px-6 py-4 bg-emerald-700 text-white flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -330,16 +337,39 @@ export const PersonModal: React.FC<PersonModalProps> = ({
               <label className="block text-xs font-semibold text-slate-700 mb-1">
                 วันเดือนปีเกิด (ค.ศ.)
               </label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="date"
-                  value={birthDate}
-                  onChange={(e) => setBirthDate(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none"
-                />
-                <span className="text-xs font-bold text-slate-700 whitespace-nowrap px-2.5 py-2 bg-slate-100 rounded-lg border border-slate-200">
-                  อายุ {calculatedAge} ปี
-                </span>
+              <div className="flex flex-col gap-2">
+                <label className="flex items-center gap-2 text-xs font-semibold text-slate-700">
+                  <input
+                    type="checkbox"
+                    checked={isBirthDateUnknown}
+                    onChange={(e) => setIsBirthDateUnknown(e.target.checked)}
+                    className="accent-emerald-600"
+                  />
+                  ทราบเฉพาะปีเกิด (ไม่ทราบวัน/เดือน)
+                </label>
+                
+                <div className="flex items-center gap-2">
+                  {isBirthDateUnknown ? (
+                    <input
+                      type="number"
+                      min="1900"
+                      max={new Date().getFullYear()}
+                      value={birthYear}
+                      onChange={(e) => setBirthYear(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none"
+                    />
+                  ) : (
+                    <input
+                      type="date"
+                      value={birthDate}
+                      onChange={(e) => setBirthDate(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-lg outline-none"
+                    />
+                  )}
+                  <span className="text-xs font-bold text-slate-700 whitespace-nowrap px-2.5 py-2 bg-slate-100 rounded-lg border border-slate-200">
+                    อายุ {calculatedAge} ปี
+                  </span>
+                </div>
               </div>
             </div>
           </div>

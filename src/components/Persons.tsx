@@ -112,7 +112,7 @@ export const Persons: React.FC<PersonsProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs space-y-3">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
         {/* Search input */}
         <div className="relative">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -202,13 +202,13 @@ export const Persons: React.FC<PersonsProps> = ({
 
       {/* Persons Table */}
       {filteredPersons.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
+        <div className="bg-white p-12 text-center rounded-xl border border-slate-200 shadow-sm">
           <Users className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-slate-700">ไม่พบข้อมูลประชากรตามเงื่อนไข</h3>
           <p className="text-xs text-slate-500 mt-1">ลองปรับตัวกรอง หรือคลิก "ลงทะเบียนประชากรใหม่"</p>
         </div>
       ) : (
-        <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs overflow-hidden">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs sm:text-sm">
               <thead>

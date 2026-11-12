@@ -169,7 +169,7 @@ export const App: React.FC = () => {
 
   const handleClearData = () => {
     storage.clearAllData();
-    loadData();
+    window.location.reload();
   };
 
   return (

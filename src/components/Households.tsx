@@ -105,7 +105,7 @@ export const Households: React.FC<HouseholdsProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-col md:flex-row gap-3">
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row gap-3">
         {/* Search */}
         <div className="relative flex-1">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -150,7 +150,7 @@ export const Households: React.FC<HouseholdsProps> = ({
 
       {/* Household Cards Grid */}
       {filteredHouseholds.length === 0 ? (
-        <div className="bg-white p-12 text-center rounded-2xl border border-slate-200">
+        <div className="bg-white p-12 text-center rounded-xl border border-slate-200 shadow-sm">
           <Home className="w-12 h-12 text-slate-300 mx-auto mb-3" />
           <h3 className="text-base font-semibold text-slate-700">ไม่พบบ้านเลขที่ตรงกับเงื่อนไข</h3>
           <p className="text-xs text-slate-500 mt-1">ลองเปลี่ยนคำค้นหา หรือกดปุ่มเพิ่มหลังคาเรือนใหม่</p>
@@ -164,7 +164,7 @@ export const Households: React.FC<HouseholdsProps> = ({
             return (
               <div
                 key={house.id}
-                className="bg-white rounded-xl border border-slate-200 hover:border-emerald-400 shadow-xs hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
+                className="bg-white rounded-xl border border-slate-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
               >
                 <div className="p-5 space-y-3">
                   {/* Top line: House No & Larva Warning */}
