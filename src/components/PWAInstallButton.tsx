@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { Download, Smartphone, X } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 export const PWAInstallButton: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
@@ -14,14 +15,16 @@ export const PWAInstallButton: React.FC = () => {
   // Chromium / Android / Desktop flow
   if (isInstallable) {
     return (
-      <button
+      <motion.button
+        whileTap={{ scale: 0.95 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 17 }}
         onClick={install}
-        className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
+        className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition cursor-pointer"
         title="ติดตั้งแอปพลิเคชันบนอุปกรณ์ของคุณ"
       >
         <Download className="w-3.5 h-3.5" />
         <span>ติดตั้งแอป (PWA)</span>
-      </button>
+      </motion.button>
     );
   }
 
@@ -29,14 +32,16 @@ export const PWAInstallButton: React.FC = () => {
   if (isIOS) {
     return (
       <>
-        <button
+        <motion.button
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => setShowIOSGuide(true)}
-          className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition"
+          className="flex items-center gap-1.5 rounded-xl border border-emerald-300 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700 hover:bg-emerald-100 transition cursor-pointer"
           title="วิธีติดตั้งบน iOS"
         >
           <Smartphone className="w-3.5 h-3.5" />
           <span>ติดตั้งบน iOS</span>
-        </button>
+        </motion.button>
 
         {showIOSGuide && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 animate-fadeIn">
@@ -82,15 +87,17 @@ export const PWAInstallButton: React.FC = () => {
 
   // Always show a quick install guide or button even if beforeinstallprompt hasn't fired yet for manual prompt or user awareness
   return (
-    <button
+    <motion.button
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 17 }}
       onClick={() => {
         alert('คุณสามารถติดตั้งแอปนี้ได้จากเมนูของเบราว์เซอร์ (เช่น "ติดตั้งแอป" หรือ "Add to Home screen") เพื่อใช้งานแบบออฟไลน์');
       }}
-      className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm"
+      className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-50 transition shadow-sm cursor-pointer"
       title="คำแนะนำการติดตั้ง PWA"
     >
       <Download className="w-3.5 h-3.5 text-emerald-600" />
       <span>วิธีติดตั้ง PWA</span>
-    </button>
+    </motion.button>
   );
 };

@@ -1,6 +1,8 @@
 import React from 'react';
 import { Activity, Home, Users, MapPin, FileText } from 'lucide-react';
 
+import { motion } from 'framer-motion';
+
 interface BottomNavProps {
   currentTab: string;
   onTabChange: (tab: string) => void;
@@ -22,8 +24,10 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
           const Icon = item.icon;
           const isActive = currentTab === item.id || (item.id === 'vhv' && currentTab === 'knowledge');
           return (
-            <button
+            <motion.button
               key={item.id}
+              whileTap={{ scale: 0.9 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 17 }}
               onClick={() => onTabChange(item.id)}
               className={`flex flex-col items-center justify-center py-1 transition-all ${
                 isActive
@@ -39,7 +43,7 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
                 <Icon className="w-5 h-5" />
               </div>
               <span className="text-[10px] mt-0.5 tracking-tight">{item.label}</span>
-            </button>
+            </motion.button>
           );
         })}
       </div>

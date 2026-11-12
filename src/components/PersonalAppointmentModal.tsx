@@ -124,9 +124,9 @@ export const PersonalAppointmentModal: React.FC<PersonalAppointmentModalProps> =
     return new Date(d.getFullYear(), d.getMonth(), 1);
   });
 
-  const loadAppointments = () => {
+  const loadAppointments = async () => {
     if (person) {
-      const list = storage.getAppointmentsByPerson(person.id);
+      const list = await storage.getAppointmentsByPerson(person.id);
       setAppointments(list);
     }
   };
@@ -180,7 +180,7 @@ export const PersonalAppointmentModal: React.FC<PersonalAppointmentModalProps> =
     setEditingAppointmentId(null);
   };
 
-  const handleSaveForm = (e: React.FormEvent) => {
+  const handleSaveForm = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !date) {
       alert('กรุณากรอกหัวข้อนัดหมายและเลือกวันที่');
@@ -206,23 +206,23 @@ export const PersonalAppointmentModal: React.FC<PersonalAppointmentModalProps> =
       updatedAt: new Date().toISOString(),
     };
 
-    storage.saveAppointment(payload);
-    loadAppointments();
+    await storage.saveAppointment(payload);
+    await loadAppointments();
     onAppointmentsChange();
     setIsAdding(false);
     setEditingAppointmentId(null);
   };
 
-  const handleStatusChange = (aptId: string, status: AppointmentStatus) => {
-    storage.updateAppointmentStatus(aptId, status);
-    loadAppointments();
+  const handleStatusChange = async (aptId: string, status: AppointmentStatus) => {
+    await storage.updateAppointmentStatus(aptId, status);
+    await loadAppointments();
     onAppointmentsChange();
   };
 
-  const handleDelete = (aptId: string) => {
+  const handleDelete = async (aptId: string) => {
     if (confirm('ยืนยันการลบนัดหมายนี้หรือไม่?')) {
-      storage.deleteAppointment(aptId);
-      loadAppointments();
+      await storage.deleteAppointment(aptId);
+      await loadAppointments();
       onAppointmentsChange();
     }
   };

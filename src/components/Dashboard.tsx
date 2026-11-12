@@ -1,4 +1,5 @@
 import React from 'react';
+import { motion } from 'framer-motion';
 import {
   Users,
   Home,
@@ -23,6 +24,7 @@ import { Household, Person, HealthScreening, Village, Appointment, VhvMember } f
 import { calculateAge, formatThaiDate } from '../utils/thaiId';
 import { CARE_CATEGORY_CONFIG, evaluateBloodPressure } from '../utils/health';
 import { APPOINTMENT_TYPE_CONFIG } from './PersonalAppointmentModal';
+import { Skeleton } from './Skeleton';
 
 interface DashboardProps {
   households: Household[];
@@ -53,6 +55,30 @@ export const Dashboard: React.FC<DashboardProps> = ({
   onOpenScreening,
   onOpenAppointments,
 }) => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-12 animate-fadeIn">
+        <div className="flex justify-between items-center">
+          <Skeleton variant="rectangle" width="250px" height="32px" />
+          <Skeleton variant="rectangle" width="140px" height="36px" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Skeleton variant="card" height="110px" />
+          <Skeleton variant="card" height="110px" />
+          <Skeleton variant="card" height="110px" />
+          <Skeleton variant="card" height="110px" />
+        </div>
+        <Skeleton variant="card" height="240px" />
+      </div>
+    );
+  }
+
   // Statistics calculations
   const totalHouseholds = households.length;
   const totalPersons = persons.length;
@@ -138,27 +164,33 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
         {/* Quick actions */}
         <div className="flex flex-wrap gap-2.5">
-          <button
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={onOpenAddPerson}
-            className="flex items-center gap-2 px-4 py-2.5 bg-white text-emerald-800 rounded-xl font-semibold text-sm hover:bg-emerald-50 transition-colors shadow-sm"
+            className="flex items-center gap-2 px-4 py-2.5 bg-white text-emerald-800 rounded-xl font-semibold text-sm hover:bg-emerald-50 transition-colors shadow-sm cursor-pointer"
           >
             <PlusCircle className="w-4 h-4 text-emerald-600" />
             <span>+ ทะเบียนประชากร</span>
-          </button>
-          <button
+          </motion.button>
+          <motion.button
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 17 }}
             onClick={onOpenAddHousehold}
-            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors border border-emerald-400/40"
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-600/80 hover:bg-emerald-600 text-white rounded-xl font-semibold text-sm transition-colors border border-emerald-400/40 cursor-pointer"
           >
             <Home className="w-4 h-4" />
             <span>+ เพิ่มหลังคาเรือน</span>
-          </button>
+          </motion.button>
         </div>
       </div>
 
       {/* Primary KPI Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {/* Households */}
-        <div
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => onNavigateTab('households')}
           className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
@@ -178,10 +210,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span>จัดการข้อมูลบ้าน & พิกัด GIS</span>
             <ChevronRight className="w-3.5 h-3.5 ml-1" />
           </div>
-        </div>
+        </motion.div>
 
         {/* Population */}
-        <div
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => onNavigateTab('persons')}
           className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
@@ -201,10 +235,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
             <span>ชาย: {malesCount} คน</span>
             <span>หญิง: {femalesCount} คน</span>
           </div>
-        </div>
+        </motion.div>
 
         {/* Elderly */}
-        <div
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => onNavigateTab('persons')}
           className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer group"
         >
@@ -225,10 +261,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <div className="mt-2 text-xs text-amber-600 font-medium">
             สังคมสูงวัย / ติดตามการคัดกรอง ADL
           </div>
-        </div>
+        </motion.div>
 
         {/* Larva HI Index */}
-        <div
+        <motion.div
+          whileTap={{ scale: 0.97 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={() => onNavigateTab('households')}
           className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:border-rose-300 hover:shadow-md transition-all cursor-pointer group"
         >
@@ -263,7 +301,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
               <span className="text-emerald-600 font-medium">ปลอดภัย ไม่พบลูกน้ำ</span>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Care Category & Chronic Diseases Distribution */}

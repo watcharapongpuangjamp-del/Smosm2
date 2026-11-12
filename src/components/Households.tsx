@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Home,
   Search,
@@ -16,6 +17,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import { Household, Person, VhvMember, Village } from '../types';
+import { Skeleton } from './Skeleton';
 
 interface HouseholdsProps {
   households: Household[];
@@ -42,6 +44,29 @@ export const Households: React.FC<HouseholdsProps> = ({
   onViewHouseholdDetail,
   onOpenMapAtHousehold,
 }) => {
+  const [isLoading, setIsLoading] = React.useState(true);
+  React.useEffect(() => {
+    const timer = setTimeout(() => setIsLoading(false), 350);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6 pb-12 animate-fadeIn">
+        <div className="flex justify-between items-center">
+          <Skeleton variant="rectangle" width="260px" height="32px" />
+          <Skeleton variant="rectangle" width="150px" height="40px" />
+        </div>
+        <Skeleton variant="rectangle" width="100%" height="48px" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <Skeleton variant="card" height="180px" />
+          <Skeleton variant="card" height="180px" />
+          <Skeleton variant="card" height="180px" />
+        </div>
+      </div>
+    );
+  }
+
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLarva, setFilterLarva] = useState<'all' | 'found' | 'clean'>('all');
   const [filterSanitation, setFilterSanitation] = useState<'all' | 'good' | 'fair' | 'poor'>('all');
@@ -95,13 +120,15 @@ export const Households: React.FC<HouseholdsProps> = ({
           </p>
         </div>
 
-        <button
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={onAddHousehold}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>เพิ่มหลังคาเรือนใหม่</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -162,9 +189,11 @@ export const Households: React.FC<HouseholdsProps> = ({
             const vhvName = getVhvName(house.vhvMemberId);
 
             return (
-              <div
+              <motion.div
                 key={house.id}
-                className="bg-white rounded-xl border border-slate-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group"
+                whileTap={{ scale: 0.98 }}
+                transition={{ type: 'spring', stiffness: 400, damping: 17 }}
+                className="bg-white rounded-xl border border-slate-200 hover:border-emerald-400 shadow-sm hover:shadow-md transition-all flex flex-col justify-between overflow-hidden group cursor-pointer"
               >
                 <div className="p-5 space-y-3">
                   {/* Top line: House No & Larva Warning */}
@@ -280,7 +309,7 @@ export const Households: React.FC<HouseholdsProps> = ({
                     </button>
                   </div>
                 </div>
-              </div>
+              </motion.div>
             );
           })}
         </div>

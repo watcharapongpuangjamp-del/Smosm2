@@ -55,28 +55,31 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
   const [pastScreenings, setPastScreenings] = useState<HealthScreening[]>([]);
 
   useEffect(() => {
-    if (person && isOpen) {
-      setDate(new Date().toISOString().split('T')[0]);
-      setWeightKg(person.weightKg || 60);
-      setHeightCm(person.heightCm || 160);
-      setSystolic(person.systolic || 120);
-      setDiastolic(person.diastolic || 80);
-      setPulse(75);
-      setBloodSugarDtx(person.bloodSugarDtx);
-      setWaistCm(undefined);
-      setSmoker(false);
-      setAlcohol(false);
-      setNotes('');
-      setAdvice('');
-      setNeedDoctorReferral(false);
+    const loadHistory = async () => {
+      if (person && isOpen) {
+        setDate(new Date().toISOString().split('T')[0]);
+        setWeightKg(person.weightKg || 60);
+        setHeightCm(person.heightCm || 160);
+        setSystolic(person.systolic || 120);
+        setDiastolic(person.diastolic || 80);
+        setPulse(75);
+        setBloodSugarDtx(person.bloodSugarDtx);
+        setWaistCm(undefined);
+        setSmoker(false);
+        setAlcohol(false);
+        setNotes('');
+        setAdvice('');
+        setNeedDoctorReferral(false);
 
-      // Default VHV
-      setVhvMemberId(household?.vhvMemberId || vhvMembers[0]?.id || '');
+        // Default VHV
+        setVhvMemberId(household?.vhvMemberId || vhvMembers[0]?.id || '');
 
-      // Load past screenings
-      const history = storage.getScreeningsByPerson(person.id);
-      setPastScreenings(history);
-    }
+        // Load past screenings
+        const history = await storage.getScreeningsByPerson(person.id);
+        setPastScreenings(history);
+      }
+    };
+    loadHistory();
   }, [person, household, vhvMembers, isOpen]);
 
   if (!isOpen || !person) return null;

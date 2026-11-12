@@ -32,11 +32,13 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
   if (!isOpen) return null;
 
   // 1. Export Excel
-  const handleExportExcel = () => {
-    const households = storage.getHouseholds();
-    const persons = storage.getPersons();
-    const screenings = storage.getScreenings();
-    const vhvMembers = storage.getVhvMembers();
+  const handleExportExcel = async () => {
+    const [households, persons, screenings, vhvMembers] = await Promise.all([
+      storage.getHouseholds(),
+      storage.getPersons(),
+      storage.getScreenings(),
+      storage.getVhvMembers(),
+    ]);
 
     const wb = XLSX.utils.book_new();
 
@@ -113,8 +115,8 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
   };
 
   // 2. Export JSON backup
-  const handleExportJson = () => {
-    const data = storage.exportAllData();
+  const handleExportJson = async () => {
+    const data = await storage.exportAllData();
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: 'application/json',
     });
@@ -176,10 +178,10 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
     const reader = new FileReader();
 
     if (file.name.endsWith('.json')) {
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const content = JSON.parse(event.target?.result as string);
-          storage.importAllData(content);
+          await storage.importAllData(content);
           setImportStatus({
             success: true,
             message: 'นำเข้าไฟล์ข้อมูลสำรอง JSON สำเร็จครบถ้วน',
@@ -195,7 +197,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
       reader.readAsText(file);
     } else {
       // Excel file
-      reader.onload = (event) => {
+      reader.onload = async (event) => {
         try {
           const data = new Uint8Array(event.target?.result as ArrayBuffer);
           const workbook = XLSX.read(data, { type: 'array' });
@@ -204,9 +206,10 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
           const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
 
           let importedCount = 0;
-          const currentHouses = storage.getHouseholds();
+          const currentHouses = await storage.getHouseholds();
 
-          rows.forEach((row, i) => {
+          for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
             const citizenId = String(row['เลขประจำตัวประชาชน'] || '').replace(/\D/g, '');
             const firstName = row['ชื่อ'] || row['firstname'];
             const lastName = row['นามสกุล'] || row['lastname'];
@@ -236,7 +239,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
                   createdAt: new Date().toISOString(),
                   updatedAt: new Date().toISOString(),
                 };
-                storage.saveHousehold(house);
+                await storage.saveHousehold(house);
                 currentHouses.push(house);
               }
 
@@ -262,10 +265,10 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
                 updatedAt: new Date().toISOString(),
               };
 
-              storage.savePerson(newPerson);
+              await storage.savePerson(newPerson);
               importedCount++;
             }
-          });
+          }
 
           setImportStatus({
             success: true,

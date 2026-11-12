@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import {
   Users,
   Search,
@@ -102,13 +103,15 @@ export const Persons: React.FC<PersonsProps> = ({
           </p>
         </div>
 
-        <button
+        <motion.button
+          whileTap={{ scale: 0.96 }}
+          transition={{ type: 'spring', stiffness: 400, damping: 17 }}
           onClick={onAddPerson}
-          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm self-start sm:self-auto"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold text-sm transition-colors shadow-sm self-start sm:self-auto cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>ลงทะเบียนประชากรใหม่</span>
-        </button>
+        </motion.button>
       </div>
 
       {/* Filter and Search Bar */}
@@ -320,27 +323,30 @@ export const Persons: React.FC<PersonsProps> = ({
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
-                          <button
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => onOpenAppointments(person)}
-                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                             title="ปฏิทินนัดหมายและลงพื้นที่รายบุคคล"
                           >
                             <Calendar className="w-4 h-4" />
-                          </button>
-                          <button
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => onOpenScreening(person)}
-                            className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                            className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                             title="บันทึกคัดกรองสุขภาพ / เยี่ยมบ้าน"
                           >
                             <ClipboardList className="w-4 h-4" />
-                          </button>
-                          <button
+                          </motion.button>
+                          <motion.button
+                            whileTap={{ scale: 0.9 }}
                             onClick={() => onEditPerson(person)}
-                            className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-slate-100 rounded-lg transition-colors"
+                            className="p-1.5 text-slate-500 hover:text-emerald-700 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
                             title="แก้ไขข้อมูลประชากร"
                           >
                             <Edit className="w-4 h-4" />
-                          </button>
+                          </motion.button>
                           <button
                             onClick={() => {
                               if (

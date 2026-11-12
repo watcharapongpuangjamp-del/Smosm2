@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { storage } from './services/storage';
-import { Household, Person, HealthScreening, Village, VhvMember, Appointment } from './types';
+import { Household, Person, HealthScreening, Village, VhvMember, Appointment, Tombstone, AuditLog } from './types';
 
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
@@ -19,6 +19,7 @@ import { SyncSettingsModal } from './components/SyncSettingsModal';
 import { OfflineIndicator } from './components/OfflineIndicator';
 import { BottomNav } from './components/BottomNav';
 import { useSwipe } from './hooks/useSwipe';
+import { PWAUpdateBanner } from './components/PWAUpdateBanner';
 
 export const App: React.FC = () => {
   // Navigation & Filter state
@@ -45,12 +46,15 @@ export const App: React.FC = () => {
   });
 
   // Data state
+  const [isInitializing, setIsInitializing] = useState(true);
   const [villages, setVillages] = useState<Village[]>([]);
   const [vhvMembers, setVhvMembers] = useState<VhvMember[]>([]);
   const [households, setHouseholds] = useState<Household[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [screenings, setScreenings] = useState<HealthScreening[]>([]);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [tombstones, setTombstones] = useState<Tombstone[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
 
   // Modal states
   const [isHouseholdModalOpen, setIsHouseholdModalOpen] = useState(false);
@@ -76,17 +80,34 @@ export const App: React.FC = () => {
   const [mapFocusedHousehold, setMapFocusedHousehold] = useState<Household | null>(null);
 
   // Load / Reload all data
-  const loadData = useCallback(() => {
-    setVillages(storage.getVillages());
-    setVhvMembers(storage.getVhvMembers());
-    setHouseholds(storage.getHouseholds());
-    setPersons(storage.getPersons());
-    setScreenings(storage.getScreenings());
-    setAppointments(storage.getAppointments());
+  const loadData = useCallback(async () => {
+    const [v, vhv, h, p, s, a, t, logs] = await Promise.all([
+      storage.getVillages(),
+      storage.getVhvMembers(),
+      storage.getHouseholds(),
+      storage.getPersons(),
+      storage.getScreenings(),
+      storage.getAppointments(),
+      storage.getTombstones(),
+      storage.getAuditLogs(),
+    ]);
+    setVillages(v);
+    setVhvMembers(vhv);
+    setHouseholds(h);
+    setPersons(p);
+    setScreenings(s);
+    setAppointments(a);
+    setTombstones(t);
+    setAuditLogs(logs);
   }, []);
 
   useEffect(() => {
-    loadData();
+    const init = async () => {
+      await storage.init();
+      await loadData();
+      setIsInitializing(false);
+    };
+    init();
   }, [loadData]);
 
   // --- Handlers: Household ---
@@ -123,14 +144,14 @@ export const App: React.FC = () => {
     setIsHouseholdModalOpen(true);
   };
 
-  const handleSaveHousehold = (household: Household) => {
-    storage.saveHousehold(household);
-    loadData();
+  const handleSaveHousehold = async (household: Household) => {
+    await storage.saveHousehold(household);
+    await loadData();
   };
 
-  const handleDeleteHousehold = (id: string) => {
-    storage.deleteHousehold(id);
-    loadData();
+  const handleDeleteHousehold = async (id: string) => {
+    await storage.deleteHousehold(id);
+    await loadData();
   };
 
   const handleViewHouseholdDetail = (household: Household) => {
@@ -156,14 +177,14 @@ export const App: React.FC = () => {
     setIsPersonModalOpen(true);
   };
 
-  const handleSavePerson = (person: Person) => {
-    storage.savePerson(person);
-    loadData();
+  const handleSavePerson = async (person: Person) => {
+    await storage.savePerson(person);
+    await loadData();
   };
 
-  const handleDeletePerson = (id: string) => {
-    storage.deletePerson(id);
-    loadData();
+  const handleDeletePerson = async (id: string) => {
+    await storage.deletePerson(id);
+    await loadData();
   };
 
   // --- Handlers: Appointments ---
@@ -178,21 +199,32 @@ export const App: React.FC = () => {
     setIsScreeningModalOpen(true);
   };
 
-  const handleSaveScreening = (screening: HealthScreening) => {
-    storage.saveScreening(screening);
-    loadData();
+  const handleSaveScreening = async (screening: HealthScreening) => {
+    await storage.saveScreening(screening);
+    await loadData();
   };
 
   // --- Reset Data ---
-  const handleResetData = () => {
-    storage.resetToDefault();
-    loadData();
+  const handleResetData = async () => {
+    await storage.resetToDefault();
+    await loadData();
   };
 
-  const handleClearData = () => {
-    storage.clearAllData();
+  const handleClearData = async () => {
+    await storage.clearAllData();
     window.location.reload();
   };
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-slate-600 font-medium animate-pulse">กำลังเริ่มต้นฐานข้อมูล SQLite...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
@@ -384,7 +416,15 @@ export const App: React.FC = () => {
         onClose={() => setIsSyncModalOpen(false)}
         onResetData={handleResetData}
         onClearData={handleClearData}
+        households={households}
+        persons={persons}
+        screenings={screenings}
+        tombstones={tombstones}
+        logs={auditLogs}
       />
+
+      {/* PWA Service Worker Update Banner */}
+      <PWAUpdateBanner />
 
       {/* Offline Status Toast */}
       <OfflineIndicator />

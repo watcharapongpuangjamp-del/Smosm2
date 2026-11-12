@@ -13,10 +13,19 @@ import {
   Server,
   Smartphone,
   ChevronDown,
+  GitCompare,
 } from 'lucide-react';
 import { storage } from '../services/storage';
+import { Household, Person, HealthScreening, Tombstone, AuditLog } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useDrag } from '@use-gesture/react';
+
+interface DiffField {
+  label: string;
+  localValue: string;
+  serverValue: string;
+  isModified: boolean;
+}
 
 interface SyncConflict {
   id: string;
@@ -24,8 +33,7 @@ interface SyncConflict {
   title: string;
   localTime: string;
   serverTime: string;
-  localDetails: string;
-  serverDetails: string;
+  diffFields: DiffField[];
 }
 
 interface SyncSettingsModalProps {
@@ -33,6 +41,11 @@ interface SyncSettingsModalProps {
   onClose: () => void;
   onResetData: () => void;
   onClearData: () => void;
+  households: Household[];
+  persons: Person[];
+  screenings: HealthScreening[];
+  tombstones: Tombstone[];
+  logs: AuditLog[];
 }
 
 export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
@@ -40,6 +53,11 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
   onClose,
   onResetData,
   onClearData,
+  households,
+  persons,
+  screenings,
+  tombstones,
+  logs,
 }) => {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncDone, setSyncDone] = useState(false);
@@ -58,44 +76,71 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
 
   if (!isOpen) return null;
 
-  const households = storage.getHouseholds();
-  const persons = storage.getPersons();
-  const screenings = storage.getScreenings();
-  const tombstones = storage.getTombstones();
-  const logs = storage.getAuditLogs();
+
 
   const handleTriggerSync = (forceConflict = false) => {
     setIsSyncing(true);
     setSyncDone(false);
 
-    setTimeout(() => {
+    setTimeout(async () => {
       setIsSyncing(false);
       if (forceConflict || (households.length > 0 && Math.random() > 0.3)) {
+        const h = households[0];
         const sampleConflict: SyncConflict = {
-          id: households[0]?.id || 'h-sample-1',
+          id: h?.id || 'h-sample-1',
           type: 'household',
-          title: `ข้อมูลหลังคาเรือน บ้านเลขที่ ${households[0]?.houseNo || '12/1'} หมู่ ${households[0]?.villageNo || 1}`,
+          title: `ข้อมูลหลังคาเรือน บ้านเลขที่ ${h?.houseNo || '12/1'} หมู่ ${h?.villageNo || 1}`,
           localTime: new Date(Date.now() - 1000 * 60 * 15).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
           serverTime: new Date(Date.now() - 1000 * 60 * 2).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' }),
-          localDetails: `แก้ไขในเครื่อง: หัวหน้าครัวเรือน "${households[0]?.headOfHouseholdName || 'นายสมชาย'}", สภาพแวดล้อม: ดี`,
-          serverDetails: `แก้ไขบน Cloud: หัวหน้าครัวเรือน "${households[0]?.headOfHouseholdName || 'นายสมชาย'} (ปรับปรุงโดย อสม. ท่านอื่น)", สภาพแวดล้อม: พอใช้`,
+          diffFields: [
+            {
+              label: 'หัวหน้าครัวเรือน',
+              localValue: h?.headOfHouseholdName || 'นายสมชาย ใจดี',
+              serverValue: h?.headOfHouseholdName || 'นายสมชาย ใจดี',
+              isModified: false,
+            },
+            {
+              label: 'คะแนนสุขภิบาล',
+              localValue: h?.sanitationRating === 'good' ? 'ดี (Good)' : 'พอใช้ (Fair)',
+              serverValue: 'พอใช้ (Fair)',
+              isModified: true,
+            },
+            {
+              label: 'พบลูกน้ำยุงลาย',
+              localValue: h?.mosquitoLarvaFound ? 'พบ (Found)' : 'ไม่พบ (Not Found)',
+              serverValue: 'พบ (Found)',
+              isModified: true,
+            },
+            {
+              label: 'แหล่งน้ำใช้',
+              localValue: h?.waterSource || 'ประปาหมู่บ้าน',
+              serverValue: 'น้ำบาดาล',
+              isModified: true,
+            },
+            {
+              label: 'ผู้รับผิดชอบ (อสม.)',
+              localValue: 'อสม. สมศรี รักสุขภาพ',
+              serverValue: 'อสม. มาיר์ ใจดี',
+              isModified: true,
+            },
+          ],
         };
         setConflicts([sampleConflict]);
         setShowConflictModal(true);
-        storage.log('sync', 'system', `[Conflict] ตรวจพบความขัดแย้งข้อมูลระหว่างเครื่องและเซิร์ฟเวอร์ (บ้านเลขที่ ${households[0]?.houseNo || '12/1'})`);
+        await storage.log('sync', 'system', `[Conflict] ตรวจพบความขัดแย้งข้อมูลระหว่างเครื่องและเซิร์ฟเวอร์ (บ้านเลขที่ ${h?.houseNo || '12/1'})`);
       } else {
         setSyncDone(true);
-        storage.log('sync', 'system', 'ดำเนินการประสานข้อมูล (Sync) กับ Cloud สำเร็จ (ไม่มีความขัดแย้ง)');
+        await storage.log('sync', 'system', 'ดำเนินการประสานข้อมูล (Sync) กับ Cloud สำเร็จ (ไม่มีความขัดแย้ง)');
       }
     }, 1000);
   };
 
-  const handleResolveConflict = (conflictId: string, choice: 'local' | 'server') => {
+  const handleResolveConflict = async (conflictId: string, choice: 'local' | 'server') => {
     setConflicts((prev) => prev.filter((c) => c.id !== conflictId));
     if (conflicts.length <= 1) {
       setShowConflictModal(false);
       setSyncDone(true);
-      storage.log('sync', 'system', `[Resolved] แก้ไขความขัดแย้งข้อมูลสำเร็จ โดยเลือกใช้ข้อมูลฝั่ง: ${choice === 'local' ? 'เครื่องท้องถิ่น' : 'เซิร์ฟเวอร์ Cloud'}`);
+      await storage.log('sync', 'system', `[Resolved] แก้ไขความขัดแย้งข้อมูลสำเร็จ โดยเลือกใช้ข้อมูลฝั่ง: ${choice === 'local' ? 'เครื่องท้องถิ่น' : 'เซิร์ฟเวอร์ Cloud'}`);
     }
   };
 
@@ -167,9 +212,10 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
                 onClick={() => handleTriggerSync(true)}
                 disabled={isSyncing}
                 title="ทดสอบจำลองความขัดแย้งของข้อมูล"
-                className="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 border border-amber-300 shadow-xs"
+                className="px-3 py-2 bg-amber-100 hover:bg-amber-200 text-amber-800 rounded-xl text-xs font-semibold transition-colors disabled:opacity-50 border border-amber-300 shadow-xs flex items-center gap-1.5"
               >
-                ทดสอบจำลอง Conflict
+                <GitCompare className="w-3.5 h-3.5" />
+                <span>จำลอง Conflict Diff</span>
               </button>
               <button
                 onClick={() => handleTriggerSync(false)}
@@ -300,94 +346,125 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
         </div>
       </motion.div>
 
-      {/* Sync Conflict Resolution Modal Dialog */}
+      {/* Sync Conflict Resolution Side-by-Side Diff Modal Dialog */}
       <AnimatePresence>
         {showConflictModal && conflicts.length > 0 && (
-          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn">
+          <div className="fixed inset-0 z-60 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-fadeIn overflow-y-auto">
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="bg-white rounded-2xl shadow-2xl border border-amber-200 w-full max-w-xl overflow-hidden flex flex-col"
+              className="bg-white rounded-2xl shadow-2xl border border-amber-200 w-full max-w-3xl overflow-hidden flex flex-col my-8"
             >
               <div className="px-6 py-4 bg-amber-600 text-white flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <AlertTriangle className="w-5 h-5 text-amber-200" />
-                  <h3 className="text-base font-bold">ตรวจพบความขัดแย้งในการซิงค์ข้อมูล (Sync Conflict)</h3>
+                  <GitCompare className="w-5 h-5 text-amber-200" />
+                  <h3 className="text-base font-bold">เครื่องมือเปรียบเทียบความขัดแย้งข้อมูล (Side-by-Side Diff)</h3>
                 </div>
                 <span className="text-xs bg-amber-700 px-2.5 py-1 rounded-lg font-mono">
-                  {conflicts.length} รายการ
+                  {conflicts.length} รายการที่ต้องตรวจสอบ
                 </span>
               </div>
 
-              <div className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-                <div className="p-3 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed">
-                  ระบบตรวจพบว่าข้อมูลชุดนี้ถูกแก้ไขทั้งในเครื่องของคุณและบน Cloud Server ในเวลาไล่เลี่ยกัน โปรดเลือกข้อมูลที่คุณต้องการเก็บรักษาไว้ก่อนซิงค์ต่อ:
+              <div className="p-6 space-y-6 max-h-[75vh] overflow-y-auto">
+                <div className="p-3.5 bg-amber-50 rounded-xl border border-amber-200 text-xs text-amber-900 leading-relaxed flex items-start gap-2.5">
+                  <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                  <div>
+                    <strong>ตรวจพบความขัดแย้งการแก้ไขข้อมูล (Sync Conflict):</strong> รายการด้านล่างถูกแก้ไขทั้งในอุปกรณ์ของคุณ (Local) และบน Cloud Server โปรดตรวจสอบตารางเปรียบเทียบ (Side-by-Side Diff) และเลือกเวอร์ชันที่ต้องการเก็บรักษา
+                  </div>
                 </div>
 
                 {conflicts.map((conflict) => (
-                  <div key={conflict.id} className="border border-slate-200 rounded-2xl p-4 space-y-4 bg-slate-50/50">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 text-sm">{conflict.title}</span>
-                      <span className="text-[11px] text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md font-semibold">
-                        ต้องตัดสินใจเลือก
+                  <div key={conflict.id} className="border border-slate-200 rounded-2xl p-5 space-y-4 bg-slate-50/60 shadow-xs">
+                    <div className="flex items-center justify-between border-b border-slate-200 pb-3">
+                      <div>
+                        <span className="font-bold text-slate-900 text-sm block">{conflict.title}</span>
+                        <span className="text-[11px] text-slate-500 font-mono">ID: {conflict.id}</span>
+                      </div>
+                      <span className="text-xs font-semibold text-amber-700 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-200">
+                        ต้องเลือกเวอร์ชัน
                       </span>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                      {/* Local Version Card */}
-                      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3">
-                        <div>
-                          <div className="flex items-center gap-1.5 text-blue-700 font-bold mb-1">
-                            <Smartphone className="w-4 h-4" />
-                            <span>ข้อมูลในเครื่อง (Local)</span>
-                          </div>
-                          <p className="text-slate-500 text-[11px] mb-2 font-mono">เวลา: {conflict.localTime}</p>
-                          <p className="text-slate-700 bg-blue-50/60 p-2.5 rounded-lg border border-blue-100 leading-relaxed">
-                            {conflict.localDetails}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleResolveConflict(conflict.id, 'local')}
-                          className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold shadow-xs transition flex items-center justify-center gap-1.5"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span>ใช้ข้อมูลในเครื่องนี้</span>
-                        </button>
-                      </div>
+                    {/* Side-by-Side Diff Comparison Table */}
+                    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-2xs">
+                      <table className="w-full text-left border-collapse text-xs">
+                        <thead>
+                          <tr className="bg-slate-100 border-b border-slate-200 text-slate-700">
+                            <th className="p-3 font-semibold w-1/4">ฟิลด์ข้อมูล</th>
+                            <th className="p-3 font-semibold w-3/8 text-blue-700 bg-blue-50/50">
+                              <div className="flex items-center gap-1.5">
+                                <Smartphone className="w-3.5 h-3.5" />
+                                <span>ในเครื่อง (Local) — {conflict.localTime}</span>
+                              </div>
+                            </th>
+                            <th className="p-3 font-semibold w-3/8 text-emerald-700 bg-emerald-50/50">
+                              <div className="flex items-center gap-1.5">
+                                <Server className="w-3.5 h-3.5" />
+                                <span>บน Cloud (Server) — {conflict.serverTime}</span>
+                              </div>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {conflict.diffFields.map((field, idx) => (
+                            <tr
+                              key={idx}
+                              className={field.isModified ? 'bg-amber-50/40 hover:bg-amber-50/80 transition' : 'hover:bg-slate-50'}
+                            >
+                              <td className="p-3 font-semibold text-slate-700">{field.label}</td>
+                              <td
+                                className={`p-3 font-medium ${
+                                  field.isModified
+                                    ? 'bg-blue-50/70 text-blue-900 font-semibold border-l-2 border-blue-500'
+                                    : 'text-slate-600'
+                                }`}
+                              >
+                                {field.localValue}
+                              </td>
+                              <td
+                                className={`p-3 font-medium ${
+                                  field.isModified
+                                    ? 'bg-emerald-50/70 text-emerald-900 font-semibold border-l-2 border-emerald-500'
+                                    : 'text-slate-600'
+                                }`}
+                              >
+                                {field.serverValue}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
 
-                      {/* Server Version Card */}
-                      <div className="bg-white p-3.5 rounded-xl border border-slate-200 shadow-2xs flex flex-col justify-between space-y-3">
-                        <div>
-                          <div className="flex items-center gap-1.5 text-emerald-700 font-bold mb-1">
-                            <Server className="w-4 h-4" />
-                            <span>ข้อมูลบน Cloud (Server)</span>
-                          </div>
-                          <p className="text-slate-500 text-[11px] mb-2 font-mono">เวลา: {conflict.serverTime}</p>
-                          <p className="text-slate-700 bg-emerald-50/60 p-2.5 rounded-lg border border-emerald-100 leading-relaxed">
-                            {conflict.serverDetails}
-                          </p>
-                        </div>
-                        <button
-                          onClick={() => handleResolveConflict(conflict.id, 'server')}
-                          className="w-full py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-semibold shadow-xs transition flex items-center justify-center gap-1.5"
-                        >
-                          <Check className="w-4 h-4" />
-                          <span>ใช้ข้อมูลบน Server นี้</span>
-                        </button>
-                      </div>
+                    {/* Resolution Choice Action Buttons */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                      <button
+                        onClick={() => handleResolveConflict(conflict.id, 'local')}
+                        className="py-2.5 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>เก็บข้อมูลในเครื่อง (Keep Local)</span>
+                      </button>
+                      <button
+                        onClick={() => handleResolveConflict(conflict.id, 'server')}
+                        className="py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition flex items-center justify-center gap-2"
+                      >
+                        <Check className="w-4 h-4" />
+                        <span>เก็บข้อมูลบน Cloud (Accept Server)</span>
+                      </button>
                     </div>
                   </div>
                 ))}
               </div>
 
               <div className="px-6 py-3 bg-slate-50 border-t border-slate-100 flex justify-between items-center text-xs text-slate-500">
-                <span>การตัดสินใจจะถูกบันทึกใน Audit Trail อัตโนมัติ</span>
+                <span>ระบบจะบันทึกประวัติการเลือกความขัดแย้งลง Audit Logs โดยอัตโนมัติ</span>
                 <button
                   onClick={() => setShowConflictModal(false)}
                   className="px-3 py-1.5 bg-slate-200 hover:bg-slate-300 text-slate-700 rounded-lg font-semibold transition"
                 >
-                  ยกเลิกการซิงค์
+                  ยกเลิก
                 </button>
               </div>
             </motion.div>

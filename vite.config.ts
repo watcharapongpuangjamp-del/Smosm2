@@ -62,6 +62,49 @@ export default defineConfig({
               },
             },
           },
+          {
+            urlPattern: /\/api\/.*$/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'api-data-cache',
+              expiration: {
+                maxEntries: 50,
+                maxAgeSeconds: 60 * 60 * 24, // 24 hours
+              },
+              networkTimeoutSeconds: 10,
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp)$/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'dynamic-assets-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            urlPattern: /^https:\/\/[a-z]\.tile\.openstreetmap\.org\/.*/i,
+            handler: 'StaleWhileRevalidate',
+            options: {
+              cacheName: 'map-tiles-cache',
+              expiration: {
+                maxEntries: 500,
+                maxAgeSeconds: 60 * 60 * 24 * 7, // 7 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
         ],
       },
       devOptions: {
@@ -74,5 +117,6 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     allowedHosts: 'all',
+    hmr: false,
   },
 });
