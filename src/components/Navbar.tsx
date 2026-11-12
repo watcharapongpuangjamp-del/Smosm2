@@ -8,10 +8,10 @@ import {
   BookOpen,
   RefreshCw,
   FileSpreadsheet,
-  Settings,
   HeartPulse,
 } from 'lucide-react';
 import { Village } from '../types';
+import { PWAInstallButton } from './PWAInstallButton';
 
 interface NavbarProps {
   currentTab: string;
@@ -96,6 +96,9 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="hidden md:inline">ระบบ Sync</span>
               <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
             </button>
+
+            {/* PWA Install Button */}
+            <PWAInstallButton />
           </div>
         </div>
       </div>

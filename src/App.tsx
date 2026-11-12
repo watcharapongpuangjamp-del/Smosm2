@@ -16,11 +16,33 @@ import { VhvDirectory } from './components/VhvDirectory';
 import { HealthKnowledge } from './components/HealthKnowledge';
 import { DataExchangeModal } from './components/DataExchangeModal';
 import { SyncSettingsModal } from './components/SyncSettingsModal';
+import { OfflineIndicator } from './components/OfflineIndicator';
+import { BottomNav } from './components/BottomNav';
+import { useSwipe } from './hooks/useSwipe';
 
 export const App: React.FC = () => {
   // Navigation & Filter state
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number>(0);
+
+  const tabList = ['dashboard', 'households', 'persons', 'map', 'vhv', 'knowledge'];
+  const swipeHandlers = useSwipe({
+    onSwipeLeft: () => {
+      const currentIndex = tabList.indexOf(currentTab);
+      if (currentIndex !== -1 && currentIndex < tabList.length - 1) {
+        setMapFocusedHousehold(null);
+        setCurrentTab(tabList[currentIndex + 1]);
+      }
+    },
+    onSwipeRight: () => {
+      const currentIndex = tabList.indexOf(currentTab);
+      if (currentIndex > 0) {
+        setMapFocusedHousehold(null);
+        setCurrentTab(tabList[currentIndex - 1]);
+      }
+    },
+    threshold: 50,
+  });
 
   // Data state
   const [villages, setVillages] = useState<Village[]>([]);
@@ -189,7 +211,7 @@ export const App: React.FC = () => {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+      <main {...swipeHandlers} className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 pt-6 pb-24 md:pb-8">
         {currentTab === 'dashboard' && (
           <Dashboard
             households={households}
@@ -362,6 +384,18 @@ export const App: React.FC = () => {
         onClose={() => setIsSyncModalOpen(false)}
         onResetData={handleResetData}
         onClearData={handleClearData}
+      />
+
+      {/* Offline Status Toast */}
+      <OfflineIndicator />
+
+      {/* Mobile Bottom Navigation Bar */}
+      <BottomNav
+        currentTab={currentTab}
+        onTabChange={(tab) => {
+          setMapFocusedHousehold(null);
+          setCurrentTab(tab);
+        }}
       />
     </div>
   );
