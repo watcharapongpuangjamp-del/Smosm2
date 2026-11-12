@@ -83,13 +83,7 @@ jobs:
           # 1. ตรวจสอบการมีอยู่ของ capacitor.config.json
           if [ ! -f "capacitor.config.json" ]; then
             echo "Generating capacitor.config.json..."
-            cat > capacitor.config.json << 'EOF'
-            {
-              "appId": "th.in.smartosm.app",
-              "appName": "Smart OSM Next",
-              "webDir": "dist"
-            }
-            EOF
+            echo '{"appId": "th.in.smartosm.app", "appName": "Smart OSM Next", "webDir": "dist"}' > capacitor.config.json
           fi
 
           # 2. ถ้ามีโฟลเดอร์ android อยู่แล้ว (จากการ commit หรือ checkout) ให้ใช้ cap sync ทันที
