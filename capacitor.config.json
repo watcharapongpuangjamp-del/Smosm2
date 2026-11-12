@@ -1,6 +1,5 @@
 {
   "appId": "th.in.smartosm.app",
   "appName": "Smart OSM Next",
-  "webDir": "dist",
-  "bundledWebRuntime": false
+  "webDir": "dist"
 }

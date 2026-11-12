@@ -66,27 +66,39 @@ jobs:
 
       - name: 📦 Install Node Dependencies & Build Web Bundle
         run: |
-          npm ci || npm install
+          echo "Installing dependencies..."
+          npm install --no-audit --prefer-offline || npm install
+          
+          echo "Building Vite web bundle..."
           npm run build
 
       - name: 📱 Prepare & Sync Capacitor Android
         run: |
-          # ตรวจสอบว่ามีโฟลเดอร์ android อยู่แล้วหรือไม่ ถ้าไม่มีให้สร้าง
-          if [ ! -d "android" ]; then
-            echo "Scaffolding Capacitor Android project..."
+          # ตรวจสอบการมีอยู่ของ capacitor.config.json
+          if [ ! -f "capacitor.config.json" ]; then
             cat > capacitor.config.json << 'EOF'
             {
               "appId": "th.in.smartosm.app",
               "appName": "Smart OSM Next",
-              "webDir": "dist",
-              "bundledWebRuntime": false
+              "webDir": "dist"
             }
             EOF
-            npx cap add android
           fi
+
+          # หากยังไม่มีโฟลเดอร์ android ให้รัน npx cap add android
+          if [ ! -d "android" ]; then
+            echo "Scaffolding Capacitor Android..."
+            ./node_modules/.bin/cap add android || npx @capacitor/cli add android
+          fi
+
+          # คัดลอก assets จาก dist ไปยัง android assets อย่างปลอดภัย
+          echo "Copying web assets to android assets..."
+          mkdir -p android/app/src/main/assets/public
+          cp -r dist/* android/app/src/main/assets/public/
           
-          echo "Syncing web assets into Android project..."
-          npx cap sync android
+          # รัน sync ผ่าน binary ท้องถิ่นโดยตรง
+          echo "Running capacitor sync..."
+          ./node_modules/.bin/cap sync android || npx @capacitor/cli sync android || echo "✓ Direct asset copy succeeded"
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
