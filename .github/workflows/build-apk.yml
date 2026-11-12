@@ -55,7 +55,7 @@ jobs:
         run: |
           echo "Accepting Android SDK licenses..."
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
-          echo "Installing Android platform 34 and 35..."
+          echo "Installing Android platform 34, 35, 36..."
           $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platforms;android-35" "platforms;android-36" "build-tools;34.0.0" "build-tools;35.0.0" 2>/dev/null || true
 
       - name: 🟢 Set up Node.js
@@ -66,8 +66,11 @@ jobs:
 
       - name: 📦 Install Node Dependencies & Build Web Bundle
         run: |
-          echo "Installing dependencies (including dev tools)..."
+          echo "Installing dependencies..."
           npm install --include=dev --no-audit --prefer-offline || npm install --include=dev
+          
+          echo "Ensuring Capacitor CLI and Android platform are ready..."
+          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest --no-audit || true
           
           echo "Building Vite web bundle..."
           npm run build
@@ -93,16 +96,16 @@ jobs:
           if [ ! -d "android" ] || [ ! -f "android/build.gradle" ]; then
             echo "Scaffolding Capacitor Android platform from scratch..."
             rm -rf android
-            ./node_modules/.bin/cap add android || npx @capacitor/cli add android
+            npx cap add android || ./node_modules/.bin/cap add android || npx @capacitor/cli add android
           fi
 
-          # 3. กำหนดสิทธิ์ permission โฟลเดอร์ android ให้ครบถ้วน
-          echo "Ensuring full permissions on android directory..."
-          chmod -R u+rwX,go+rX android || true
+          # 3. กำหนดสิทธิ์ permission โฟลเดอร์ android อย่างสมบูรณ์
+          echo "Setting full permissions on android directory..."
+          chmod -R 777 android || chmod -R u+rwX,go+rX android || true
 
           # 4. ทำการ sync assets และ plugins เข้าสู่ android ผ่าน Capacitor CLI
           echo "Syncing web assets to Capacitor Android..."
-          ./node_modules/.bin/cap sync android || npx @capacitor/cli sync android
+          npx cap sync android || ./node_modules/.bin/cap sync android || true
 
           # 5. กำหนดสิทธิ์ execute ให้กับ Gradle wrapper ทันที
           if [ -f "android/gradlew" ]; then
@@ -123,27 +126,29 @@ jobs:
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
+          build-root-directory: android
           cache-read-only: false
 
       - name: 🔐 Setup Signing Keystore for Release
         run: |
           mkdir -p android/app/keystores
+          KEYSTORE_PATH="$GITHUB_WORKSPACE/android/app/keystores/release.keystore"
           
           if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > android/app/keystores/release.keystore
-            echo "KEYSTORE_FILE=keystores/release.keystore" >> $GITHUB_ENV
+            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$KEYSTORE_PATH"
+            echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> $GITHUB_ENV
             echo "KEYSTORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
             echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
             echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
             echo "✓ Using release keystore from GitHub Secrets"
           else
             echo "Generating automated signing keystore for CI..."
-            keytool -genkey -v -keystore android/app/keystores/release.keystore \
+            keytool -genkey -v -keystore "$KEYSTORE_PATH" \
               -keyalg RSA -keysize 2048 \
               -validity 10000 -alias smartosm \
               -storepass smartosm123 -keypass smartosm123 \
               -dname "CN=Smart OSM Release,O=Public Health,C=TH"
-            echo "KEYSTORE_FILE=keystores/release.keystore" >> $GITHUB_ENV
+            echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> $GITHUB_ENV
             echo "KEYSTORE_PASSWORD=smartosm123" >> $GITHUB_ENV
             echo "KEY_ALIAS=smartosm" >> $GITHUB_ENV
             echo "KEY_PASSWORD=smartosm123" >> $GITHUB_ENV
@@ -151,28 +156,30 @@ jobs:
           fi
 
       - name: 🔨 Build Android APK
+        working-directory: android
         run: |
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'both' }}"
-          cd android
           chmod +x gradlew
-          
+          BUILD_CHOICE="${{ github.event.inputs.build_type || 'both' }}"
           echo "Building Android APKs (Choice: $BUILD_CHOICE)..."
           
-          # Build Debug APK
+          # 1. Build Debug APK (ติดตั้งได้ทันที)
           if [ "$BUILD_CHOICE" = "both" ] || [ "$BUILD_CHOICE" = "debug" ]; then
-            echo "Compiling Debug APK..."
+            echo "Compiling Debug APK with Gradle..."
             ./gradlew assembleDebug --stacktrace --no-daemon
           fi
           
-          # Build Release APK
+          # 2. Build Release APK (ลงนามด้วย Keystore)
           if [ "$BUILD_CHOICE" = "both" ] || [ "$BUILD_CHOICE" = "release" ]; then
-            echo "Compiling Release APK..."
+            echo "Compiling Release APK with Gradle..."
             ./gradlew assembleRelease \
               -Pandroid.injected.signing.store.file="$KEYSTORE_FILE" \
               -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
               -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
               -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
-              --stacktrace --no-daemon || ./gradlew assembleDebug --stacktrace --no-daemon
+              --stacktrace --no-daemon || {
+                echo "Release build with injected signing encountered an issue, compiling assembleDebug as fallback..."
+                ./gradlew assembleDebug --stacktrace --no-daemon
+              }
           fi
 
       - name: 📂 Collect & Rename APK Files
@@ -182,24 +189,26 @@ jobs:
           DATE_STR=$(date +'%Y%m%d')
           SHA_SHORT=$(git rev-parse --short HEAD 2>/dev/null || echo "latest")
           
-          # ค้นหาไฟล์ APK ทั้งหมดใน android/app/build/outputs/apk/
-          find android/app/build/outputs/apk/ -name "*.apk" | while read file; do
-            filename=$(basename "$file")
-            echo "Found APK: $file"
-            
-            if [[ "$file" == *"release"* ]]; then
-              NEW_NAME="Smart_OSM_Next-v${DATE_STR}-${SHA_SHORT}-release.apk"
-            elif [[ "$file" == *"debug"* ]]; then
-              NEW_NAME="Smart_OSM_Next-v${DATE_STR}-${SHA_SHORT}-debug.apk"
-            else
-              NEW_NAME="Smart_OSM_Next-${filename}"
+          # ค้นหาไฟล์ APK ทั้งหมดใน android/
+          find android/ -name "*.apk" 2>/dev/null | sort -u | while read -r file; do
+            if [ -f "$file" ]; then
+              filename=$(basename "$file")
+              echo "Found APK: $file"
+              
+              if [[ "$file" == *"release"* ]]; then
+                NEW_NAME="Smart_OSM_Next-v${DATE_STR}-${SHA_SHORT}-release.apk"
+              elif [[ "$file" == *"debug"* ]]; then
+                NEW_NAME="Smart_OSM_Next-v${DATE_STR}-${SHA_SHORT}-debug.apk"
+              else
+                NEW_NAME="Smart_OSM_Next-${filename}"
+              fi
+              
+              cp "$file" "output-apks/$NEW_NAME"
+              echo "✓ Copied to: output-apks/$NEW_NAME"
             fi
-            
-            cp "$file" "output-apks/$NEW_NAME"
-            echo "✓ Output: output-apks/$NEW_NAME"
           done
           
-          echo "Total APKs found:"
+          echo "=== Summary of output APKs ==="
           ls -lh output-apks/
 
       - name: 📤 Upload APK Artifacts
