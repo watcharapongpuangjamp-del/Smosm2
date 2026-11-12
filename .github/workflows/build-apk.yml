@@ -66,16 +66,20 @@ jobs:
 
       - name: 📦 Install Node Dependencies & Build Web Bundle
         run: |
-          echo "Installing dependencies..."
-          npm install --no-audit --prefer-offline || npm install
+          echo "Installing dependencies (including dev tools)..."
+          npm install --include=dev --no-audit --prefer-offline || npm install --include=dev
           
           echo "Building Vite web bundle..."
           npm run build
+          
+          echo "Verifying web bundle in dist/..."
+          ls -la dist/
 
       - name: 📱 Prepare & Sync Capacitor Android
         run: |
-          # ตรวจสอบการมีอยู่ของ capacitor.config.json
+          # 1. ตรวจสอบการมีอยู่ของ capacitor.config.json
           if [ ! -f "capacitor.config.json" ]; then
+            echo "Generating capacitor.config.json..."
             cat > capacitor.config.json << 'EOF'
             {
               "appId": "th.in.smartosm.app",
@@ -85,20 +89,36 @@ jobs:
             EOF
           fi
 
-          # หากยังไม่มีโฟลเดอร์ android ให้รัน npx cap add android
-          if [ ! -d "android" ]; then
-            echo "Scaffolding Capacitor Android..."
+          # 2. หากยังไม่มีโฟลเดอร์ android หรือยังไม่มี build.gradle ใน android ให้ scaffold ใหม่
+          if [ ! -d "android" ] || [ ! -f "android/build.gradle" ]; then
+            echo "Scaffolding Capacitor Android platform from scratch..."
+            rm -rf android
             ./node_modules/.bin/cap add android || npx @capacitor/cli add android
           fi
 
-          # คัดลอก assets จาก dist ไปยัง android assets อย่างปลอดภัย
-          echo "Copying web assets to android assets..."
+          # 3. กำหนดสิทธิ์ permission โฟลเดอร์ android ให้ครบถ้วน
+          echo "Ensuring full permissions on android directory..."
+          chmod -R u+rwX,go+rX android || true
+
+          # 4. ทำการ sync assets และ plugins เข้าสู่ android ผ่าน Capacitor CLI
+          echo "Syncing web assets to Capacitor Android..."
+          ./node_modules/.bin/cap sync android || npx @capacitor/cli sync android
+
+          # 5. กำหนดสิทธิ์ execute ให้กับ Gradle wrapper ทันที
+          if [ -f "android/gradlew" ]; then
+            chmod +x android/gradlew
+            echo "✓ android/gradlew marked executable"
+          fi
+
+          # 6. ตรวจสอบความสมบูรณ์ของ web assets ใน android
           mkdir -p android/app/src/main/assets/public
-          cp -r dist/* android/app/src/main/assets/public/
-          
-          # รัน sync ผ่าน binary ท้องถิ่นโดยตรง
-          echo "Running capacitor sync..."
-          ./node_modules/.bin/cap sync android || npx @capacitor/cli sync android || echo "✓ Direct asset copy succeeded"
+          if [ -z "$(ls -A android/app/src/main/assets/public 2>/dev/null)" ]; then
+            echo "Fallback: copy dist assets to android/app/src/main/assets/public..."
+            cp -r dist/* android/app/src/main/assets/public/
+          fi
+
+          echo "✓ Android platform prepared successfully:"
+          ls -la android/
 
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
