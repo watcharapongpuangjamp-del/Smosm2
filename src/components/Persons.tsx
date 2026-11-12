@@ -12,6 +12,7 @@ import {
   AlertCircle,
   Activity,
   CheckCircle2,
+  Calendar,
 } from 'lucide-react';
 import { Person, Household, Village } from '../types';
 import { calculateAge, formatThaiCitizenId } from '../utils/thaiId';
@@ -26,6 +27,7 @@ interface PersonsProps {
   onEditPerson: (person: Person) => void;
   onDeletePerson: (id: string) => void;
   onOpenScreening: (person: Person) => void;
+  onOpenAppointments: (person: Person) => void;
 }
 
 export const Persons: React.FC<PersonsProps> = ({
@@ -37,6 +39,7 @@ export const Persons: React.FC<PersonsProps> = ({
   onEditPerson,
   onDeletePerson,
   onOpenScreening,
+  onOpenAppointments,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [careFilter, setCareFilter] = useState<'all' | 'active' | 'homebound' | 'bedridden'>('all');
@@ -317,6 +320,13 @@ export const Persons: React.FC<PersonsProps> = ({
                       {/* Actions */}
                       <td className="py-3 px-4 text-right">
                         <div className="flex items-center justify-end gap-1">
+                          <button
+                            onClick={() => onOpenAppointments(person)}
+                            className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="ปฏิทินนัดหมายและลงพื้นที่รายบุคคล"
+                          >
+                            <Calendar className="w-4 h-4" />
+                          </button>
                           <button
                             onClick={() => onOpenScreening(person)}
                             className="p-1.5 text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"

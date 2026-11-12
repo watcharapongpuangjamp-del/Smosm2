@@ -99,7 +99,7 @@ export interface HealthScreening {
 
 export interface Tombstone {
   id: string;
-  collection: 'households' | 'persons' | 'screenings' | 'vhv_members';
+  collection: 'households' | 'persons' | 'screenings' | 'vhv_members' | 'appointments';
   villageNo: number;
   deletedAt: string;
 }
@@ -111,4 +111,31 @@ export interface AuditLog {
   collection: string;
   details: string;
   user: string;
+}
+
+export type AppointmentType =
+  | 'home_visit'       // เยี่ยมบ้านผู้ป่วยติดเตียงและติดบ้าน
+  | 'vitals_check'     // นัดตรวจวัดความดันและเจาะน้ำตาลปลายนิ้ว (DTX)
+  | 'hospital_visit'   // นัดพบแพทย์และรับยาประจำที่ รพ.สต. หรือ รพ.
+  | 'vaccine'          // นัดฉีดวัคซีน (ไข้หวัดใหญ่/เด็ก/ผู้สูงอายุ)
+  | 'larva_survey'     // นัดสำรวจลูกน้ำยุงลายและสุขาภิบาลรอบบ้าน
+  | 'other';           // นัดหมายอื่นๆ
+
+export type AppointmentStatus = 'upcoming' | 'completed' | 'missed' | 'cancelled';
+
+export interface Appointment {
+  id: string;
+  personId: string;
+  householdId: string;
+  villageNo: number;
+  vhvMemberId: string;
+  title: string;
+  type: AppointmentType;
+  date: string; // YYYY-MM-DD
+  time?: string; // HH:mm
+  location: string;
+  status: AppointmentStatus;
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }

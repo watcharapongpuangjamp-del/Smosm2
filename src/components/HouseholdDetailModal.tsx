@@ -12,6 +12,7 @@ import {
   Edit,
   ClipboardList,
   CheckCircle2,
+  Calendar,
 } from 'lucide-react';
 import { Household, Person, VhvMember } from '../types';
 import { calculateAge, formatThaiDate } from '../utils/thaiId';
@@ -27,6 +28,7 @@ interface HouseholdDetailModalProps {
   onEditMember: (person: Person) => void;
   onDeleteMember: (personId: string) => void;
   onScreenMember: (person: Person) => void;
+  onOpenAppointments: (person: Person) => void;
 }
 
 export const HouseholdDetailModal: React.FC<HouseholdDetailModalProps> = ({
@@ -39,6 +41,7 @@ export const HouseholdDetailModal: React.FC<HouseholdDetailModalProps> = ({
   onEditMember,
   onDeleteMember,
   onScreenMember,
+  onOpenAppointments,
 }) => {
   if (!isOpen || !household) return null;
 
@@ -184,6 +187,14 @@ export const HouseholdDetailModal: React.FC<HouseholdDetailModalProps> = ({
                       </div>
 
                       <div className="flex items-center gap-1.5 self-end sm:self-auto">
+                        <button
+                          onClick={() => onOpenAppointments(person)}
+                          className="flex items-center gap-1 px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg text-xs font-semibold transition-colors"
+                          title="ปฏิทินนัดหมายและลงพื้นที่รายบุคคล"
+                        >
+                          <Calendar className="w-3.5 h-3.5" />
+                          <span>นัดหมาย</span>
+                        </button>
                         <button
                           onClick={() => onScreenMember(person)}
                           className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-lg text-xs font-semibold transition-colors"

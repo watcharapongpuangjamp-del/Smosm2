@@ -1,4 +1,4 @@
-import { Village, VhvMember, Household, Person, HealthScreening } from '../types';
+import { Village, VhvMember, Household, Person, HealthScreening, Appointment } from '../types';
 
 export const INITIAL_VILLAGES: Village[] = [
   {
@@ -575,5 +575,104 @@ export const INITIAL_SCREENINGS: HealthScreening[] = [
     advice: 'แนะนำดื่มน้ำมากๆ งดของเค็ม คุมอาหารคาร์โบไฮเดรต',
     needDoctorReferral: false,
     createdAt: '2026-09-26T15:00:00Z',
+  }
+];
+
+export const INITIAL_APPOINTMENTS: Appointment[] = [
+  {
+    id: 'apt-1',
+    personId: 'person-3', // นางคำปัน ใจแก้ว (ติดเตียง)
+    householdId: 'house-2',
+    villageNo: 1,
+    vhvMemberId: 'vhv-1',
+    title: 'เยี่ยมบ้านติดตามแผลกดทับและกายภาพบำบัด',
+    type: 'home_visit',
+    date: '2026-11-14',
+    time: '09:30',
+    location: 'บ้านเลขที่ 15/2 หมู่ 1',
+    status: 'upcoming',
+    notes: 'ร่วมลงพื้นที่กับพยาบาลวิชาชีพ รพ.สต. เพื่อล้างแผลกดทับและแนะนำญาติเรื่องการพลิกตัว',
+    createdAt: '2026-11-01T08:00:00Z',
+    updatedAt: '2026-11-01T08:00:00Z',
+  },
+  {
+    id: 'apt-2',
+    personId: 'person-1', // นายประสิทธิ์ สุขเกษม
+    householdId: 'house-1',
+    villageNo: 1,
+    vhvMemberId: 'vhv-1',
+    title: 'ตรวจวัดความดันโลหิตและเจาะน้ำตาลสะสมรอบ 3 เดือน',
+    type: 'vitals_check',
+    date: '2026-11-15',
+    time: '08:00',
+    location: 'บ้านเลขที่ 12/1 หมู่ 1',
+    status: 'upcoming',
+    notes: 'แนะนำให้อดอาหารและน้ำหวานหลังเที่ยงคืนก่อนตรวจ DTX',
+    createdAt: '2026-11-02T09:00:00Z',
+    updatedAt: '2026-11-02T09:00:00Z',
+  },
+  {
+    id: 'apt-3',
+    personId: 'person-6', // นางมาลี บัวบาน (ติดบ้าน, เข่าเสื่อม)
+    householdId: 'house-4',
+    villageNo: 1,
+    vhvMemberId: 'vhv-2',
+    title: 'นัดพบแพทย์คลินิกโรคเรื้อรังและรับยาความดัน',
+    type: 'hospital_visit',
+    date: '2026-11-16',
+    time: '10:00',
+    location: 'รพ.สต. ตำบลสุขภาพดี',
+    status: 'upcoming',
+    notes: 'ประสานญาติเพื่อช่วยพยุงและนำสมุดประจำตัวผู้ป่วยไปด้วย',
+    createdAt: '2026-11-05T10:00:00Z',
+    updatedAt: '2026-11-05T10:00:00Z',
+  },
+  {
+    id: 'apt-4',
+    personId: 'person-8', // นางสาวกัญญา (หญิงตั้งครรภ์)
+    householdId: 'house-5',
+    villageNo: 1,
+    vhvMemberId: 'vhv-2',
+    title: 'นัดตรวจครรภ์ตามนัด (ANC) และฉีดวัคซีนบาดทะยัก',
+    type: 'vaccine',
+    date: '2026-11-18',
+    time: '09:00',
+    location: 'รพ.สต. ตำบลสุขภาพดี',
+    status: 'upcoming',
+    notes: 'ตรวจคัดกรองเบาหวานขณะตั้งครรภ์ นำสมุดสีชมพูมาด้วย',
+    createdAt: '2026-11-06T11:00:00Z',
+    updatedAt: '2026-11-06T11:00:00Z',
+  },
+  {
+    id: 'apt-5',
+    personId: 'person-5', // นายวิเชียร วงศ์ษา (พบบ้านมีลูกน้ำ)
+    householdId: 'house-3',
+    villageNo: 1,
+    vhvMemberId: 'vhv-1',
+    title: 'ตรวจติดตามแหล่งเพาะพันธุ์ลูกน้ำยุงลายและใส่ทรายอะเบทซ้ำ',
+    type: 'larva_survey',
+    date: '2026-11-14',
+    time: '14:00',
+    location: 'บ้านเลขที่ 24 หมู่ 1',
+    status: 'upcoming',
+    notes: 'ตรวจอ่างบัวและจานรองกระถางต้นไม้หน้าบ้าน',
+    createdAt: '2026-11-08T13:00:00Z',
+    updatedAt: '2026-11-08T13:00:00Z',
+  },
+  {
+    id: 'apt-6',
+    personId: 'person-2', // นางอำไพ สุขเกษม
+    householdId: 'house-1',
+    villageNo: 1,
+    vhvMemberId: 'vhv-1',
+    title: 'ตรวจติดตามระดับน้ำตาลหลังอาหาร',
+    type: 'vitals_check',
+    date: '2026-10-25',
+    time: '13:30',
+    location: 'บ้านเลขที่ 12/1 หมู่ 1',
+    status: 'completed',
+    notes: 'ผล DTX ได้ 128 mg/dL คุมได้ดีขึ้น แนะนำลดผลไม้หวานจัด',
+    createdAt: '2026-10-15T09:00:00Z',
+    updatedAt: '2026-10-25T14:00:00Z',
   }
 ];

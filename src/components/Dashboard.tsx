@@ -14,10 +14,15 @@ import {
   ShieldAlert,
   ArrowUpRight,
   Bug,
+  Calendar,
+  Clock,
+  CalendarDays,
+  CheckCircle2,
 } from 'lucide-react';
-import { Household, Person, HealthScreening, Village } from '../types';
+import { Household, Person, HealthScreening, Village, Appointment, VhvMember } from '../types';
 import { calculateAge, formatThaiDate } from '../utils/thaiId';
 import { CARE_CATEGORY_CONFIG, evaluateBloodPressure } from '../utils/health';
+import { APPOINTMENT_TYPE_CONFIG } from './PersonalAppointmentModal';
 
 interface DashboardProps {
   households: Household[];
@@ -25,10 +30,13 @@ interface DashboardProps {
   screenings: HealthScreening[];
   villages: Village[];
   selectedVillageNo: number;
+  appointments?: Appointment[];
+  vhvMembers?: VhvMember[];
   onNavigateTab: (tab: string) => void;
   onOpenAddHousehold: () => void;
   onOpenAddPerson: () => void;
   onOpenScreening: (person: Person) => void;
+  onOpenAppointments?: (person: Person) => void;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
@@ -37,10 +45,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
   screenings,
   villages,
   selectedVillageNo,
+  appointments = [],
+  vhvMembers = [],
   onNavigateTab,
   onOpenAddHousehold,
   onOpenAddPerson,
   onOpenScreening,
+  onOpenAppointments,
 }) => {
   // Statistics calculations
   const totalHouseholds = households.length;
@@ -83,6 +94,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
     selectedVillageNo === 0
       ? 'ทุกหมู่บ้านในเขตรับผิดชอบ'
       : villages.find((v) => v.no === selectedVillageNo)?.name || `หมู่ ${selectedVillageNo}`;
+
+  // Upcoming appointments (within next 7 days, sorted by date asc)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  const getRelativeDayInfo = (dateStr: string) => {
+    const target = new Date(dateStr);
+    target.setHours(0, 0, 0, 0);
+    const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return { label: 'วันนี้', badgeClass: 'bg-rose-100 text-rose-700 border-rose-300 font-bold animate-pulse' };
+    if (diffDays === 1) return { label: 'พรุ่งนี้', badgeClass: 'bg-amber-100 text-amber-800 border-amber-300 font-semibold' };
+    if (diffDays < 0) return { label: `เลยกำหนด ${Math.abs(diffDays)} วัน`, badgeClass: 'bg-rose-50 text-rose-600 border-rose-200' };
+    return { label: `อีก ${diffDays} วัน`, badgeClass: 'bg-blue-50 text-blue-700 border-blue-200 font-medium' };
+  };
+
+  const upcomingAppointments = appointments
+    .filter((a) => {
+      if (a.status !== 'upcoming') return false;
+      if (selectedVillageNo !== 0 && a.villageNo !== selectedVillageNo) return false;
+      const target = new Date(a.date);
+      target.setHours(0, 0, 0, 0);
+      const diffDays = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+      return diffDays >= -2 && diffDays <= 7;
+    })
+    .sort((a, b) => new Date(`${a.date}T${a.time || '00:00'}`).getTime() - new Date(`${b.date}T${b.time || '00:00'}`).getTime());
 
   return (
     <div className="space-y-6 pb-12">
@@ -368,6 +404,169 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </button>
           </div>
         </div>
+      </div>
+
+      {/* Upcoming Appointments & Community Visits (3-7 days) */}
+      <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-gradient-to-r from-blue-50/70 to-indigo-50/40">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-xl bg-blue-600 text-white shadow-xs">
+              <Calendar className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-base font-bold text-slate-800">
+                  เตือนนัดหมายและลงพื้นที่เร็วๆ นี้ (3 - 7 วันข้างหน้า)
+                </h2>
+                <span className="text-[11px] font-semibold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-700 border border-blue-200">
+                  {upcomingAppointments.length} รายการ
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 mt-0.5">
+                ติดตามนัดตรวจคัดกรอง, นัดพบแพทย์/รับยา, ฉีดวัคซีน, และเยี่ยมบ้านผู้ป่วย
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto">
+            <button
+              onClick={() => onNavigateTab('persons')}
+              className="text-xs font-semibold text-blue-700 hover:text-blue-800 bg-white hover:bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200/80 transition-colors inline-flex items-center gap-1 shadow-2xs"
+            >
+              <span>ดูทะเบียนประชากรทั้งหมด</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {upcomingAppointments.length === 0 ? (
+          <div className="p-8 text-center text-slate-400">
+            <Calendar className="w-10 h-10 mx-auto text-slate-300 mb-2" />
+            <p className="text-sm font-medium text-slate-600">ไม่มีนัดหมายที่ใกล้ถึงกำหนดในช่วง 7 วันข้างหน้า</p>
+            <p className="text-xs text-slate-400 mt-0.5">
+              คุณสามารถสร้างนัดหมายรายบุคคลได้จากหน้ารายละเอียดประชากรหรือสมาชิกในหลังคาเรือน
+            </p>
+          </div>
+        ) : (
+          <div className="divide-y divide-slate-100">
+            {upcomingAppointments.map((apt) => {
+              const person = persons.find((p) => p.id === apt.personId);
+              const house = households.find((h) => h.id === apt.householdId);
+              const typeCfg = APPOINTMENT_TYPE_CONFIG[apt.type] || APPOINTMENT_TYPE_CONFIG.other;
+              const TypeIcon = typeCfg.icon;
+              const relDay = getRelativeDayInfo(apt.date);
+              const vhv = vhvMembers.find((v) => v.id === apt.vhvMemberId);
+              const careConfig = person ? CARE_CATEGORY_CONFIG[person.careCategory] : null;
+
+              return (
+                <div
+                  key={apt.id}
+                  className="p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-slate-50/70 transition-colors"
+                >
+                  <div className="flex items-start gap-3.5">
+                    {/* Date Block */}
+                    <div className="flex flex-col items-center justify-center min-w-[76px] px-2.5 py-2 rounded-xl bg-slate-50 border border-slate-200/80 text-center shrink-0">
+                      <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full border mb-1 ${relDay.badgeClass}`}>
+                        {relDay.label}
+                      </span>
+                      <span className="text-xs font-bold text-slate-800">
+                        {formatThaiDate(apt.date)}
+                      </span>
+                      {apt.time && (
+                        <span className="text-[11px] text-slate-500 flex items-center gap-0.5 mt-0.5">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          {apt.time} น.
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Details */}
+                    <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="font-bold text-slate-900 text-sm sm:text-base">
+                          {apt.title}
+                        </span>
+                        <span
+                          className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full border ${typeCfg.bgClass} ${typeCfg.colorClass} ${typeCfg.borderClass}`}
+                        >
+                          <TypeIcon className="w-3 h-3" />
+                          <span>{typeCfg.label}</span>
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-xs text-slate-600">
+                        {person ? (
+                          <span className="font-medium text-slate-800 flex items-center gap-1">
+                            <span>ผู้ป่วย/ประชากร:</span>
+                            <span className="font-semibold underline decoration-slate-300">
+                              {person.title}{person.firstName} {person.lastName}
+                            </span>
+                            {careConfig && (
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded-full font-medium ${careConfig.badgeClass}`}>
+                                {careConfig.shortLabel}
+                              </span>
+                            )}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">รหัสบุคคล: {apt.personId}</span>
+                        )}
+
+                        <span className="flex items-center gap-1 text-slate-500">
+                          <Home className="w-3.5 h-3.5 text-slate-400" />
+                          บ้านเลขที่ {house?.houseNo || '-'} หมู่ {apt.villageNo}
+                        </span>
+
+                        {apt.location && (
+                          <span className="flex items-center gap-1 text-slate-500">
+                            <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                            {apt.location}
+                          </span>
+                        )}
+                      </div>
+
+                      {apt.notes && (
+                        <p className="text-xs text-slate-500 mt-1.5 bg-slate-50 px-2.5 py-1 rounded-md border border-slate-100 line-clamp-2">
+                          <span className="font-medium text-slate-600">หมายเหตุ: </span>
+                          {apt.notes}
+                        </p>
+                      )}
+
+                      {vhv && (
+                        <div className="text-[11px] text-slate-400 mt-1">
+                          อสม. ผู้รับผิดชอบ: <span className="text-slate-600 font-medium">{vhv.name}</span> ({vhv.phone})
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
+                    {person && onOpenAppointments && (
+                      <button
+                        onClick={() => onOpenAppointments(person)}
+                        className="flex items-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold transition-all shadow-xs hover:shadow"
+                        title="เปิดปฏิทินนัดหมายรายบุคคล"
+                      >
+                        <Calendar className="w-3.5 h-3.5" />
+                        <span>เปิดปฏิทินนัดหมาย</span>
+                      </button>
+                    )}
+                    {person && (
+                      <button
+                        onClick={() => onOpenScreening(person)}
+                        className="flex items-center gap-1 px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold transition-colors"
+                        title="บันทึกคัดกรองสุขภาพ"
+                      >
+                        <ClipboardList className="w-3.5 h-3.5" />
+                        <span className="hidden sm:inline">คัดกรอง</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       {/* Urgent Attention / Priority Action List */}

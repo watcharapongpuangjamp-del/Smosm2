@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { storage } from './services/storage';
-import { Household, Person, HealthScreening, Village, VhvMember } from './types';
+import { Household, Person, HealthScreening, Village, VhvMember, Appointment } from './types';
 
 import { Navbar } from './components/Navbar';
 import { Dashboard } from './components/Dashboard';
@@ -10,6 +10,7 @@ import { HouseholdDetailModal } from './components/HouseholdDetailModal';
 import { Persons } from './components/Persons';
 import { PersonModal } from './components/PersonModal';
 import { HealthScreeningModal } from './components/HealthScreeningModal';
+import { PersonalAppointmentModal } from './components/PersonalAppointmentModal';
 import { CommunityMap } from './components/CommunityMap';
 import { VhvDirectory } from './components/VhvDirectory';
 import { HealthKnowledge } from './components/HealthKnowledge';
@@ -27,6 +28,7 @@ export const App: React.FC = () => {
   const [households, setHouseholds] = useState<Household[]>([]);
   const [persons, setPersons] = useState<Person[]>([]);
   const [screenings, setScreenings] = useState<HealthScreening[]>([]);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
 
   // Modal states
   const [isHouseholdModalOpen, setIsHouseholdModalOpen] = useState(false);
@@ -42,6 +44,9 @@ export const App: React.FC = () => {
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
   const [personForScreening, setPersonForScreening] = useState<Person | null>(null);
 
+  const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState(false);
+  const [personForAppointments, setPersonForAppointments] = useState<Person | null>(null);
+
   const [isDataExchangeOpen, setIsDataExchangeOpen] = useState(false);
   const [isSyncModalOpen, setIsSyncModalOpen] = useState(false);
 
@@ -55,6 +60,7 @@ export const App: React.FC = () => {
     setHouseholds(storage.getHouseholds());
     setPersons(storage.getPersons());
     setScreenings(storage.getScreenings());
+    setAppointments(storage.getAppointments());
   }, []);
 
   useEffect(() => {
@@ -138,6 +144,12 @@ export const App: React.FC = () => {
     loadData();
   };
 
+  // --- Handlers: Appointments ---
+  const handleOpenAppointments = (person: Person) => {
+    setPersonForAppointments(person);
+    setIsAppointmentsModalOpen(true);
+  };
+
   // --- Handlers: Screening ---
   const handleOpenScreening = (person: Person) => {
     setPersonForScreening(person);
@@ -180,10 +192,13 @@ export const App: React.FC = () => {
             screenings={screenings}
             villages={villages}
             selectedVillageNo={selectedVillageNo}
+            appointments={appointments}
+            vhvMembers={vhvMembers}
             onNavigateTab={setCurrentTab}
             onOpenAddHousehold={handleOpenAddHousehold}
             onOpenAddPerson={() => handleOpenAddPerson()}
             onOpenScreening={handleOpenScreening}
+            onOpenAppointments={handleOpenAppointments}
           />
         )}
 
@@ -212,6 +227,7 @@ export const App: React.FC = () => {
             onEditPerson={handleEditPerson}
             onDeletePerson={handleDeletePerson}
             onOpenScreening={handleOpenScreening}
+            onOpenAppointments={handleOpenAppointments}
           />
         )}
 
@@ -280,6 +296,10 @@ export const App: React.FC = () => {
           setIsHouseholdDetailOpen(false);
           handleOpenScreening(p);
         }}
+        onOpenAppointments={(p) => {
+          setIsHouseholdDetailOpen(false);
+          handleOpenAppointments(p);
+        }}
       />
 
       {/* Person Modal (Add/Edit) */}
@@ -305,6 +325,23 @@ export const App: React.FC = () => {
         vhvMembers={vhvMembers}
         onClose={() => setIsScreeningModalOpen(false)}
         onSave={handleSaveScreening}
+      />
+
+      {/* Personal Appointment Modal */}
+      <PersonalAppointmentModal
+        isOpen={isAppointmentsModalOpen}
+        person={personForAppointments}
+        household={
+          personForAppointments
+            ? households.find((h) => h.id === personForAppointments.householdId)
+            : null
+        }
+        vhvMembers={vhvMembers}
+        onClose={() => {
+          setIsAppointmentsModalOpen(false);
+          setPersonForAppointments(null);
+        }}
+        onAppointmentsChange={loadData}
       />
 
       {/* Data Exchange Modal (Excel / JSON) */}

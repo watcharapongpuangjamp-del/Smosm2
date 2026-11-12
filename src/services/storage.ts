@@ -4,6 +4,8 @@ import {
   Household,
   Person,
   HealthScreening,
+  Appointment,
+  AppointmentStatus,
   Tombstone,
   AuditLog,
 } from '../types';
@@ -13,6 +15,7 @@ import {
   INITIAL_HOUSEHOLDS,
   INITIAL_PERSONS,
   INITIAL_SCREENINGS,
+  INITIAL_APPOINTMENTS,
 } from '../data/mockData';
 
 const KEYS = {
@@ -21,6 +24,7 @@ const KEYS = {
   HOUSEHOLDS: 'smart_osm_households',
   PERSONS: 'smart_osm_persons',
   SCREENINGS: 'smart_osm_screenings',
+  APPOINTMENTS: 'smart_osm_appointments',
   TOMBSTONES: 'smart_osm_tombstones',
   LOGS: 'smart_osm_audit_logs',
   LAST_SYNC: 'smart_osm_last_sync',
@@ -46,6 +50,9 @@ class StorageService {
     }
     if (!localStorage.getItem(KEYS.SCREENINGS)) {
       localStorage.setItem(KEYS.SCREENINGS, JSON.stringify(INITIAL_SCREENINGS));
+    }
+    if (!localStorage.getItem(KEYS.APPOINTMENTS)) {
+      localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(INITIAL_APPOINTMENTS));
     }
     if (!localStorage.getItem(KEYS.TOMBSTONES)) {
       localStorage.setItem(KEYS.TOMBSTONES, JSON.stringify([]));
@@ -248,6 +255,84 @@ class StorageService {
     this.log('create', 'screenings', `บันทึกการคัดกรองสุขภาพ วันที่ ${screening.date}`);
   }
 
+  // --- Appointments (ปฏิทินนัดหมาย) ---
+  getAppointments(villageNo?: number): Appointment[] {
+    try {
+      const data = localStorage.getItem(KEYS.APPOINTMENTS);
+      const list: Appointment[] = data ? JSON.parse(data) : INITIAL_APPOINTMENTS;
+      if (villageNo !== undefined && villageNo !== 0) {
+        return list.filter((a) => a.villageNo === villageNo);
+      }
+      return list;
+    } catch {
+      return INITIAL_APPOINTMENTS;
+    }
+  }
+
+  getAppointmentsByPerson(personId: string): Appointment[] {
+    return this.getAppointments()
+      .filter((a) => a.personId === personId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  getUpcomingAppointments(daysAhead: number = 7, villageNo?: number): Appointment[] {
+    const list = this.getAppointments(villageNo);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const futureLimit = new Date(today);
+    futureLimit.setDate(today.getDate() + daysAhead);
+    futureLimit.setHours(23, 59, 59, 999);
+
+    return list
+      .filter((a) => {
+        if (a.status !== 'upcoming') return false;
+        const aptDate = new Date(a.date);
+        return aptDate >= today && aptDate <= futureLimit;
+      })
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+
+  saveAppointment(appointment: Appointment): void {
+    const list = this.getAppointments();
+    const idx = list.findIndex((a) => a.id === appointment.id);
+    const now = new Date().toISOString();
+    appointment.updatedAt = now;
+
+    if (idx >= 0) {
+      list[idx] = appointment;
+      this.log('update', 'appointments', `อัปเดตนัดหมาย: ${appointment.title}`);
+    } else {
+      appointment.createdAt = now;
+      list.push(appointment);
+      this.log('create', 'appointments', `สร้างนัดหมายใหม่: ${appointment.title}`);
+    }
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(list));
+  }
+
+  updateAppointmentStatus(id: string, status: AppointmentStatus): void {
+    const list = this.getAppointments();
+    const apt = list.find((a) => a.id === id);
+    if (!apt) return;
+
+    apt.status = status;
+    apt.updatedAt = new Date().toISOString();
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(list));
+    this.log('update', 'appointments', `เปลี่ยนสถานะนัดหมาย ${apt.title} เป็น ${status}`);
+  }
+
+  deleteAppointment(id: string): void {
+    const list = this.getAppointments();
+    const target = list.find((a) => a.id === id);
+    if (!target) return;
+
+    const filtered = list.filter((a) => a.id !== id);
+    localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(filtered));
+
+    this.addTombstone('appointments', target.villageNo, id);
+    this.log('delete', 'appointments', `ลบนัดหมาย: ${target.title}`);
+  }
+
   // --- Tombstones & Sync ---
   private addTombstone(collection: Tombstone['collection'], villageNo: number, id: string) {
     try {
@@ -309,6 +394,7 @@ class StorageService {
       households: this.getHouseholds(),
       persons: this.getPersons(),
       screenings: this.getScreenings(),
+      appointments: this.getAppointments(),
       tombstones: this.getTombstones(),
     };
   }
@@ -322,6 +408,7 @@ class StorageService {
     if (payload.households) localStorage.setItem(KEYS.HOUSEHOLDS, JSON.stringify(payload.households));
     if (payload.persons) localStorage.setItem(KEYS.PERSONS, JSON.stringify(payload.persons));
     if (payload.screenings) localStorage.setItem(KEYS.SCREENINGS, JSON.stringify(payload.screenings));
+    if (payload.appointments) localStorage.setItem(KEYS.APPOINTMENTS, JSON.stringify(payload.appointments));
     
     this.log('import', 'system', `นำเข้าข้อมูลสำรองทั้งหมดสำเร็จ (${payload.persons.length} ประชากร, ${payload.households.length} ครัวเรือน)`);
     return true;
