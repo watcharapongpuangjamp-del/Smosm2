@@ -1,0 +1,10 @@
+{
+  "name": "Smart OSM Next - ระบบทะเบียนประชากรและจัดการข้อมูล อสม.",
+  "description": "ระบบ Smart OSM สำหรับจัดการข้อมูล อสม. ครัวเรือน ประชากร แผนที่สุขภาพชุมชน และระบบรายงาน อสม.",
+  "requestFramePermissions": [
+    "geolocation"
+  ],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
