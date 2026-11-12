@@ -141,7 +141,7 @@ export const VhvDirectory: React.FC<VhvDirectoryProps> = ({
         /* Monthly Report View */
         <div className="space-y-6">
           {/* Controls: Month selector & Export button */}
-          <div className="bg-white p-4 rounded-xl border border-slate-200/80 shadow-xs flex flex-wrap items-center justify-between gap-3">
+          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="text-xs font-semibold text-slate-700">ประจำเดือน / ปี (ค.ศ.):</span>
               <input
@@ -171,7 +171,7 @@ export const VhvDirectory: React.FC<VhvDirectoryProps> = ({
           </div>
 
           {/* Printable Report Document Card */}
-          <div className="bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-sm space-y-6 print:border-none print:shadow-none">
+          <div className="bg-white p-6 sm:p-8 rounded-xl border border-slate-200 shadow-sm space-y-6 print:border-none print:shadow-none">
             {/* Report Document Title */}
             <div className="text-center border-b border-slate-200 pb-5">
               <h2 className="text-lg sm:text-xl font-bold text-slate-900">
@@ -292,7 +292,7 @@ export const VhvDirectory: React.FC<VhvDirectoryProps> = ({
             return (
               <div
                 key={vhv.id}
-                className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs hover:border-emerald-300 transition-all space-y-3"
+                className="bg-white p-5 rounded-xl border border-slate-200 shadow-sm hover:border-emerald-300 transition-all space-y-3"
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-center gap-3">

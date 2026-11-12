@@ -105,7 +105,7 @@ export const HealthKnowledge: React.FC = () => {
       </div>
 
       {/* Emergency Hotline Banner */}
-      <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div className="bg-rose-50 border border-rose-100 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-rose-600 text-white rounded-xl">
             <PhoneCall className="w-6 h-6 animate-pulse" />
@@ -125,7 +125,7 @@ export const HealthKnowledge: React.FC = () => {
       </div>
 
       {/* AI Smart Health Assistant */}
-      <div className="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white rounded-2xl p-6 shadow-md space-y-4">
+      <div className="bg-gradient-to-br from-emerald-900 via-teal-900 to-slate-900 text-white rounded-xl p-6 border border-emerald-800 shadow-md space-y-4">
         <div className="flex items-center gap-2">
           <div className="p-1.5 rounded-lg bg-emerald-500 text-white">
             <Sparkles className="w-4 h-4" />
@@ -164,7 +164,7 @@ export const HealthKnowledge: React.FC = () => {
       </div>
 
       {/* Standard Guidelines Accordions */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-xs divide-y divide-slate-100 overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-sm divide-y divide-slate-100 overflow-hidden">
         {GUIDELINES.map((item, idx) => {
           const isOpen = openSection === idx;
           return (
