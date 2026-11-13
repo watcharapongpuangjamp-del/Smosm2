@@ -27,7 +27,7 @@ on:
       create_release:
         description: 'สร้าง GitHub Release พร้อมแนบ APK ให้ดาวน์โหลด (เมื่อกดรันด้วยมือหรือ Tag)'
         required: false
-        default: true
+        default: false
         type: boolean
 
 permissions:
@@ -125,7 +125,7 @@ jobs:
           mkdir -p android/app/keystores
           KEYSTORE_PATH="$GITHUB_WORKSPACE/android/app/keystores/release.keystore"
           
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'debug' }}"
+          BUILD_CHOICE="${{ (startsWith(github.ref, 'refs/tags/v') || inputs.create_release) && 'release' || (github.event.inputs.build_type || 'debug') }}"
           if [ "$BUILD_CHOICE" = "both" ] || [ "$BUILD_CHOICE" = "release" ]; then
             if [ -z "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] || \
                [ -z "${{ secrets.STORE_PASSWORD }}" ] || \
@@ -145,7 +145,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'debug' }}"
+          BUILD_CHOICE="${{ (startsWith(github.ref, 'refs/tags/v') || inputs.create_release) && 'release' || (github.event.inputs.build_type || 'debug') }}"
           echo "Building Android APKs (Choice: $BUILD_CHOICE)..."
           
           # 1. Build Debug APK (ติดตั้งได้ทันที)
