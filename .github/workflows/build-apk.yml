@@ -5,12 +5,14 @@ on:
     branches:
       - main
       - develop
+      - fixv1
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
       - develop
+      - fixv1
   workflow_dispatch:
     inputs:
       build_type:
@@ -194,7 +196,6 @@ jobs:
           ls -lh output-apks/
 
       - name: 📤 Upload APK Artifacts
-        id: upload
         uses: actions/upload-artifact@v4
         with:
           name: Smart_OSM_Next-APK-Build-${{ github.sha }}
@@ -238,15 +239,8 @@ jobs:
             
             *สร้างโดยระบบอัตโนมัติ GitHub Actions*
 
-  build-summary:
-    name: Build Summary
-    needs: build-apk
-    if: always()
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-    steps:
       - name: 📊 Job Summary
+        if: always()
         run: |
           echo "### 📱 ผลการ Build APK" >> $GITHUB_STEP_SUMMARY
           echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
@@ -254,12 +248,6 @@ jobs:
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### รายการไฟล์ APK ที่สร้างเสร็จ:" >> $GITHUB_STEP_SUMMARY
-          for f in output-apks/*.apk; do
-            if [ -f "$f" ]; then
-              SIZE=$(ls -lh "$f" | awk '{print $5}')
-              NAME=$(basename "$f")
-              echo "- 📦 **$NAME** ($SIZE)" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
+          echo "Build job result: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "👉 *สามารถดาวน์โหลดไฟล์ APK ได้จากส่วน **Artifacts** ด้านล่างของหน้ารายงานนี้*" >> $GITHUB_STEP_SUMMARY
+          echo "👉 *ดาวน์โหลด APK จากส่วน Artifacts ของ run นี้เมื่อ job สำเร็จ*" >> $GITHUB_STEP_SUMMARY
