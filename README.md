@@ -34,6 +34,12 @@
   - ส่งออกข้อมูลเป็นไฟล์ Excel (.xlsx) และสำรองข้อมูล JSON
   - มีแม่แบบ Excel Template สำหรับนำเข้าข้อมูลประชากรพร้อมใช้งาน
 
+## 🔒 สถานะข้อมูลและความปลอดภัย
+
+- รุ่นปัจจุบันบันทึกข้อมูลไว้ใน SQLite ภายในอุปกรณ์และ **ยังไม่มี Cloud Sync หรือระบบบัญชีผู้ใช้**
+- ส่งออกไฟล์ JSON เพื่อสำรองข้อมูลก่อนเปลี่ยนหรือล้างอุปกรณ์ และเก็บไฟล์สำรองไว้ในตำแหน่งที่เข้าถึงได้เฉพาะผู้มีสิทธิ์
+- ข้อมูลสุขภาพและข้อมูลระบุตัวบุคคลเป็นข้อมูลอ่อนไหว: ควรใช้รหัสล็อกอุปกรณ์ ห้ามแชร์ไฟล์สำรอง และลบข้อมูลก่อนส่งต่ออุปกรณ์
+
 ---
 
 ## 🤖 ระบบ Build Android APK อัตโนมัติ (CI/CD GitHub Actions)
@@ -45,22 +51,23 @@
 1. ไปที่แท็บ **Actions** ใน GitHub Repository ของคุณ
 2. เลือก Workflow **"Build Android APK & Release"** ทางซ้ายมือ
 3. กดปุ่ม **Run workflow**:
-   - เลือก Branch (`main` หรือ `develop`)
-   - เลือกประเภท Build: `both` (ทั้ง Debug และ Release), `debug`, หรือ `release`
-   - เลือกตัวเลือก `create_release: true` หากต้องการให้สร้าง Release หน้า GitHub พร้อมไฟล์ดาวน์โหลด
+   - เลือก Branch ที่ต้องการ build
+   - เลือกประเภท Build: `debug` (ค่าเริ่มต้น), `both`, หรือ `release`
+   - เลือก `create_release: true` เฉพาะเมื่อต้องการสร้าง GitHub Release พร้อม APK ที่เซ็นด้วย release key
 4. กด **Run workflow** สีเขียว
 
 ### 2. วิธีดาวน์โหลด APK หลัง Build เสร็จ:
 - **จากแท็บ Actions**: คลิกเข้าไปที่รอบการทำงานที่สำเร็จ เลื่อนลงมาที่หัวข้อ **Artifacts** จะพบไฟล์ zip ของ APK ให้กดดาวน์โหลดได้ทันที
 - **จากแท็บ Releases**: หากเปิดตัวเลือก Release ไว้ สามารถดาวน์โหลดไฟล์ `.apk` โดยตรงจากหน้า Releases ของ Repository
 
-### 3. การตั้งค่า Release Keystore สำหรับ Production (ตัวเลือกเสริม):
-หากต้องการใช้ Keystore ส่วนตัวสำหรับอัปโหลดขึ้น Google Play Store ให้ตั้งค่าใน **Settings > Secrets and variables > Actions**:
+### 3. การตั้งค่า Release Keystore สำหรับ Production
+การ build แบบ `release`, `both` หรือการสร้าง GitHub Release ต้องตั้งค่า secrets ทุกตัวใน **Settings > Secrets and variables > Actions**:
 - `RELEASE_KEYSTORE_BASE64`: ไฟล์ `.jks` แปลงเป็น Base64
 - `STORE_PASSWORD`: รหัสผ่าน Store
 - `KEY_ALIAS`: ชื่อ Alias ของ Key
 - `KEY_PASSWORD`: รหัสผ่าน Key
-*(หากไม่ได้ตั้งค่าไว้ Workflow จะสร้าง Fallback Signing Key สำหรับติดตั้งและทดสอบให้โดยอัตโนมัติ)*
+
+หาก secrets ไม่ครบ Workflow จะหยุดพร้อมข้อความผิดพลาด และจะไม่สร้าง APK release ที่ลงนามด้วยคีย์ชั่วคราว
 
 ---
 
