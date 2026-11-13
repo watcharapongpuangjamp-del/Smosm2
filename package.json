@@ -18,6 +18,7 @@
     "@use-gesture/react": "^10.3.1",
     "@vis.gl/react-google-maps": "^1.10.2",
     "clsx": "^2.1.1",
+    "drizzle-orm": "^0.45.4",
     "firebase": "^13.3.0",
     "firebase-admin": "^14.5.1",
     "framer-motion": "^14.13.0",
