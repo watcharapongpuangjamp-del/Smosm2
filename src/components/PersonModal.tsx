@@ -166,7 +166,13 @@ export const PersonModal: React.FC<PersonModalProps> = ({
     }
 
     const normalizedCitizenId = citizenId.trim();
-    if (normalizedCitizenId && !validateThaiCitizenId(normalizedCitizenId).isValid) {
+    const isUnchangedLegacyId =
+      Boolean(personToEdit) && normalizedCitizenId === personToEdit?.citizenId;
+    if (
+      normalizedCitizenId &&
+      !isUnchangedLegacyId &&
+      !validateThaiCitizenId(normalizedCitizenId).isValid
+    ) {
       alert('เลขประจำตัวประชาชนต้องครบ 13 หลักและผ่านการตรวจสอบ Checksum');
       return;
     }
