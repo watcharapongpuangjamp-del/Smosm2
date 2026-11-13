@@ -9,6 +9,10 @@ import {
   RefreshCw,
   FileSpreadsheet,
   HeartPulse,
+  Monitor,
+  Tablet,
+  Smartphone,
+  Maximize2,
 } from 'lucide-react';
 import { Village } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -21,6 +25,8 @@ interface NavbarProps {
   onVillageChange: (no: number) => void;
   onOpenSyncModal: () => void;
   onOpenDataExchange: () => void;
+  displayMode: 'auto' | 'pc' | 'tablet' | 'mobile';
+  onDisplayModeChange: (mode: 'auto' | 'pc' | 'tablet' | 'mobile') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -31,6 +37,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onVillageChange,
   onOpenSyncModal,
   onOpenDataExchange,
+  displayMode,
+  onDisplayModeChange,
 }) => {
   return (
     <header className="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
@@ -99,6 +107,22 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* PWA Install Button */}
             <PWAInstallButton />
+
+            {/* Display Mode Selector */}
+            <div className="flex items-center bg-emerald-800/80 rounded-lg px-2.5 py-1.5 text-xs border border-emerald-600/50">
+              <span className="text-emerald-200 mr-1.5 hidden xl:inline">โหมด:</span>
+              <select
+                value={displayMode}
+                onChange={(e) => onDisplayModeChange(e.target.value as any)}
+                className="bg-transparent text-white font-medium text-xs sm:text-sm focus:outline-none cursor-pointer"
+                title="เลือกรูปแบบการแสดงผลหน้าจอ (PC / Tablet / Mobile)"
+              >
+                <option value="auto" className="text-slate-800">📱 Auto (Responsive)</option>
+                <option value="mobile" className="text-slate-800">📱 Mobile Phone</option>
+                <option value="tablet" className="text-slate-800">📋 Tablet View</option>
+                <option value="pc" className="text-slate-800">💻 PC Desktop</option>
+              </select>
+            </div>
           </div>
         </div>
       </div>

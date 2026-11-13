@@ -25,6 +25,20 @@ export const App: React.FC = () => {
   // Navigation & Filter state
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number>(0);
+  const [displayMode, setDisplayMode] = useState<'auto' | 'pc' | 'tablet' | 'mobile'>('auto');
+
+  const getContainerClass = () => {
+    if (displayMode === 'mobile') {
+      return 'max-w-sm mx-auto my-6 border-[14px] border-slate-900 rounded-[48px] shadow-2xl bg-white overflow-hidden flex flex-col relative h-[860px] overflow-y-auto';
+    }
+    if (displayMode === 'tablet') {
+      return 'max-w-4xl mx-auto my-6 shadow-2xl rounded-2xl bg-white border border-slate-300 overflow-hidden flex flex-col max-h-[92vh] overflow-y-auto';
+    }
+    if (displayMode === 'pc') {
+      return 'max-w-[1600px] w-full mx-auto flex flex-col min-h-screen bg-slate-50';
+    }
+    return 'min-h-screen bg-slate-50 flex flex-col text-slate-800';
+  };
 
   const tabList = ['dashboard', 'households', 'persons', 'map', 'vhv', 'knowledge'];
   const swipeHandlers = useSwipe({
@@ -247,7 +261,7 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
+    <div className={getContainerClass()}>
       {/* Top Navbar */}
       <Navbar
         currentTab={currentTab}
@@ -260,6 +274,8 @@ export const App: React.FC = () => {
         onVillageChange={setSelectedVillageNo}
         onOpenSyncModal={() => setIsSyncModalOpen(true)}
         onOpenDataExchange={() => setIsDataExchangeOpen(true)}
+        displayMode={displayMode}
+        onDisplayModeChange={setDisplayMode}
       />
 
       {/* Main Container */}
