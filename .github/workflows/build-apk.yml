@@ -18,7 +18,7 @@ on:
       build_type:
         description: 'Build Type (debug หรือ release)'
         required: true
-        default: 'both'
+        default: 'debug'
         type: choice
         options:
           - both
@@ -126,7 +126,7 @@ jobs:
           mkdir -p android/app/keystores
           KEYSTORE_PATH="$GITHUB_WORKSPACE/android/app/keystores/release.keystore"
           
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'both' }}"
+          BUILD_CHOICE="${{ github.event.inputs.build_type || 'debug' }}"
           if [ "$BUILD_CHOICE" = "both" ] || [ "$BUILD_CHOICE" = "release" ]; then
             if [ -z "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] || \
                [ -z "${{ secrets.STORE_PASSWORD }}" ] || \
@@ -146,7 +146,7 @@ jobs:
         working-directory: android
         run: |
           chmod +x gradlew
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'both' }}"
+          BUILD_CHOICE="${{ github.event.inputs.build_type || 'debug' }}"
           echo "Building Android APKs (Choice: $BUILD_CHOICE)..."
           
           # 1. Build Debug APK (ติดตั้งได้ทันที)
