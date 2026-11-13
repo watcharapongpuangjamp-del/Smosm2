@@ -94,15 +94,14 @@ export const Navbar: React.FC<NavbarProps> = ({
               <span className="hidden sm:inline">Excel/นำเข้า</span>
             </button>
 
-            {/* Sync Status / Settings Button */}
+            {/* Data and security status button */}
             <button
               onClick={onOpenSyncModal}
               title="สถานะระบบและความปลอดภัยข้อมูล"
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-emerald-100 text-xs sm:text-sm font-medium transition-colors border border-emerald-600/40"
             >
               <RefreshCw className="w-4 h-4 text-emerald-300" />
-              <span className="hidden md:inline">ระบบ Sync</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="hidden md:inline">ข้อมูลและความปลอดภัย</span>
             </button>
 
             {/* PWA Install Button */}
