@@ -5,18 +5,20 @@ on:
     branches:
       - main
       - develop
+      - fixv1
     tags:
       - 'v*'
   pull_request:
     branches:
       - main
       - develop
+      - fixv1
   workflow_dispatch:
     inputs:
       build_type:
         description: 'Build Type (debug หรือ release)'
         required: true
-        default: 'both'
+        default: 'debug'
         type: choice
         options:
           - both
@@ -25,13 +27,11 @@ on:
       create_release:
         description: 'สร้าง GitHub Release พร้อมแนบ APK ให้ดาวน์โหลด (เมื่อกดรันด้วยมือหรือ Tag)'
         required: false
-        default: true
+        default: false
         type: boolean
 
 permissions:
-  contents: write
-  pull-requests: write
-  issues: write
+  contents: read
 
 jobs:
   build-apk:
@@ -43,7 +43,7 @@ jobs:
       - name: 📥 Checkout Repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       - name: ☕ Set up JDK 21
         uses: actions/setup-java@v4
@@ -54,9 +54,9 @@ jobs:
       - name: 📦 Setup Android SDK & Accept Licenses
         run: |
           echo "Accepting Android SDK licenses..."
-          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses 2>/dev/null || true
-          echo "Installing Android platform 34, 35, 36..."
-          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-34" "platforms;android-35" "platforms;android-36" "build-tools;34.0.0" "build-tools;35.0.0" 2>/dev/null || true
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses
+          echo "Installing Android platform and build tools..."
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-35" "build-tools;35.0.0"
 
       - name: 🟢 Set up Node.js
         uses: actions/setup-node@v4
@@ -67,10 +67,7 @@ jobs:
       - name: 📦 Install Node Dependencies & Build Web Bundle
         run: |
           echo "Installing dependencies..."
-          npm install --include=dev --no-audit --prefer-offline || npm install --include=dev
-          
-          echo "Ensuring Capacitor CLI and Android platform are ready..."
-          npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest --no-audit || true
+          npm install --include=dev --no-audit --prefer-offline
           
           echo "Building Vite web bundle..."
           npm run build
@@ -91,16 +88,16 @@ jobs:
             echo "Android platform already exists in repository. Skipping cap add."
           else
             echo "Scaffolding Capacitor Android platform..."
-            npx cap add android --no-interactive || ./node_modules/.bin/cap add android --no-interactive || true
+            npx cap add android --no-interactive
           fi
 
           # 3. กำหนดสิทธิ์ permission โฟลเดอร์ android อย่างสมบูรณ์
           echo "Setting full permissions on android directory..."
-          chmod -R 777 android || chmod -R u+rwX,go+rX android || true
+          chmod -R u+rwX,go+rX android
 
           # 4. ทำการ sync assets และ plugins เข้าสู่ android ผ่าน Capacitor CLI
           echo "Syncing web assets to Capacitor Android..."
-          npx cap sync android || ./node_modules/.bin/cap sync android || true
+          npx cap sync android
 
           # 5. กำหนดสิทธิ์ execute ให้กับ Gradle wrapper ทันที
           if [ -f "android/gradlew" ]; then
@@ -121,7 +118,6 @@ jobs:
       - name: 🐘 Setup Gradle
         uses: gradle/actions/setup-gradle@v4
         with:
-          build-root-directory: android
           cache-read-only: false
 
       - name: 🔐 Setup Signing Keystore for Release
@@ -129,32 +125,27 @@ jobs:
           mkdir -p android/app/keystores
           KEYSTORE_PATH="$GITHUB_WORKSPACE/android/app/keystores/release.keystore"
           
-          if [ -n "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ]; then
-            echo "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 -d > "$KEYSTORE_PATH"
-            echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> $GITHUB_ENV
-            echo "KEYSTORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> $GITHUB_ENV
-            echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
-            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
-            echo "✓ Using release keystore from GitHub Secrets"
-          else
-            echo "Generating automated signing keystore for CI..."
-            keytool -genkey -v -keystore "$KEYSTORE_PATH" \
-              -keyalg RSA -keysize 2048 \
-              -validity 10000 -alias smartosm \
-              -storepass smartosm123 -keypass smartosm123 \
-              -dname "CN=Smart OSM Release,O=Public Health,C=TH"
-            echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> $GITHUB_ENV
-            echo "KEYSTORE_PASSWORD=smartosm123" >> $GITHUB_ENV
-            echo "KEY_ALIAS=smartosm" >> $GITHUB_ENV
-            echo "KEY_PASSWORD=smartosm123" >> $GITHUB_ENV
-            echo "✓ Generated self-signed keystore for CI release build"
+          BUILD_CHOICE="${{ (startsWith(github.ref, 'refs/tags/v') || inputs.create_release) && 'release' || (github.event.inputs.build_type || 'debug') }}"
+          if [ "$BUILD_CHOICE" = "both" ] || [ "$BUILD_CHOICE" = "release" ]; then
+            if [ -z "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" ] || \
+               [ -z "${{ secrets.STORE_PASSWORD }}" ] || \
+               [ -z "${{ secrets.KEY_ALIAS }}" ] || \
+               [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+              echo "Release builds require RELEASE_KEYSTORE_BASE64, STORE_PASSWORD, KEY_ALIAS, and KEY_PASSWORD secrets." >&2
+              exit 1
+            fi
+            printf '%s' "${{ secrets.RELEASE_KEYSTORE_BASE64 }}" | base64 --decode > "$KEYSTORE_PATH"
+            echo "KEYSTORE_FILE=$KEYSTORE_PATH" >> "$GITHUB_ENV"
+            echo "KEYSTORE_PASSWORD=${{ secrets.STORE_PASSWORD }}" >> "$GITHUB_ENV"
+            echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> "$GITHUB_ENV"
+            echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> "$GITHUB_ENV"
           fi
 
       - name: 🔨 Build Android APK
         working-directory: android
         run: |
           chmod +x gradlew
-          BUILD_CHOICE="${{ github.event.inputs.build_type || 'both' }}"
+          BUILD_CHOICE="${{ (startsWith(github.ref, 'refs/tags/v') || inputs.create_release) && 'release' || (github.event.inputs.build_type || 'debug') }}"
           echo "Building Android APKs (Choice: $BUILD_CHOICE)..."
           
           # 1. Build Debug APK (ติดตั้งได้ทันที)
@@ -171,10 +162,7 @@ jobs:
               -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
               -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
               -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
-              --stacktrace --no-daemon || {
-                echo "Release build with injected signing encountered an issue, compiling assembleDebug as fallback..."
-                ./gradlew assembleDebug --stacktrace --no-daemon
-              }
+              --stacktrace --no-daemon
           fi
 
       - name: 📂 Collect & Rename APK Files
@@ -214,8 +202,21 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+  publish-release:
+    name: Publish GitHub Release
+    needs: build-apk
+    if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: 📥 Download APK Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: Smart_OSM_Next-APK-Build-${{ github.sha }}
+          path: output-apks
+
       - name: 🚀 Publish GitHub Release with APK
-        if: startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && github.event.inputs.create_release == 'true')
         uses: softprops/action-gh-release@v2
         with:
           files: output-apks/*.apk
@@ -230,30 +231,22 @@ jobs:
             
             - **Commit SHA**: `${{ github.sha }}`
             - **Branch/Tag**: `${{ github.ref_name }}`
-            - **วันที่สร้าง**: $(date +'%Y-%m-%d %H:%M:%S UTC')
+            - **วันที่สร้าง**: ${{ github.event.head_commit.timestamp || github.event.repository.updated_at }}
             
             #### 📥 ดาวน์โหลดไฟล์ติดตั้ง:
             - ดาวน์โหลดไฟล์ `.apk` จากรายการ Assets ด้านล่างนี้เพื่อนำไปติดตั้งบนโทรศัพท์หรือแท็บเล็ต Android ได้ทันที
             
             *สร้างโดยระบบอัตโนมัติ GitHub Actions*
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: 📊 Job Summary
         if: always()
         run: |
-          echo "### 📱 ผลการ Build APK สำเร็จ! 🎉" >> $GITHUB_STEP_SUMMARY
+          echo "### 📱 ผลการ Build APK" >> $GITHUB_STEP_SUMMARY
           echo "- **Event**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Ref**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Commit**: \`${{ github.sha }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "#### รายการไฟล์ APK ที่สร้างเสร็จ:" >> $GITHUB_STEP_SUMMARY
-          for f in output-apks/*.apk; do
-            if [ -f "$f" ]; then
-              SIZE=$(ls -lh "$f" | awk '{print $5}')
-              NAME=$(basename "$f")
-              echo "- 📦 **$NAME** ($SIZE)" >> $GITHUB_STEP_SUMMARY
-            fi
-          done
+          echo "Build job result: ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "👉 *สามารถดาวน์โหลดไฟล์ APK ได้จากส่วน **Artifacts** ด้านล่างของหน้ารายงานนี้*" >> $GITHUB_STEP_SUMMARY
+          echo "👉 *ดาวน์โหลด APK จากส่วน Artifacts ของ run นี้เมื่อ job สำเร็จ*" >> $GITHUB_STEP_SUMMARY

@@ -93,6 +93,39 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
+    const isInRange = (value: number | undefined, min: number, max: number) =>
+      value !== undefined && Number.isFinite(value) && value >= min && value <= max;
+
+    if (date > new Date().toISOString().slice(0, 10)) {
+      alert('วันที่คัดกรองต้องไม่เป็นวันในอนาคต');
+      return;
+    }
+
+    if (
+      !isInRange(weightKg, 1, 500) ||
+      !isInRange(heightCm, 30, 300) ||
+      !isInRange(systolic, 50, 300) ||
+      !isInRange(diastolic, 30, 200) ||
+      systolic <= diastolic
+    ) {
+      alert('กรุณาตรวจสอบน้ำหนัก ส่วนสูง และความดันโลหิตให้อยู่ในช่วงที่สมเหตุสมผล');
+      return;
+    }
+
+    if (
+      (pulse !== 0 && !isInRange(pulse, 30, 250)) ||
+      (bloodSugarDtx !== undefined && !isInRange(bloodSugarDtx, 20, 1000)) ||
+      (waistCm !== undefined && !isInRange(waistCm, 20, 300))
+    ) {
+      alert('กรุณาตรวจสอบชีพจร น้ำตาลปลายนิ้ว หรือรอบเอวให้อยู่ในช่วงที่สมเหตุสมผล');
+      return;
+    }
+
+    if (!bmiResult) {
+      alert('ไม่สามารถคำนวณ BMI ได้ กรุณาตรวจสอบน้ำหนักและส่วนสูง');
+      return;
+    }
+
     const payload: HealthScreening = {
       id: `scr-${Date.now()}`,
       personId: person.id,
@@ -102,7 +135,7 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
       vhvMemberId: vhvMemberId || 'vhv-1',
       weightKg: Number(weightKg),
       heightCm: Number(heightCm),
-      bmi: bmiResult?.bmi || 22,
+      bmi: bmiResult.bmi,
       systolic: Number(systolic),
       diastolic: Number(diastolic),
       pulse: pulse ? Number(pulse) : undefined,
@@ -291,6 +324,8 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
                 <input
                   type="number"
                   placeholder="เช่น 110 (ปล่อยว่างถ้าไม่ได้เจาะ)"
+                  min={20}
+                  max={1000}
                   value={bloodSugarDtx ?? ''}
                   onChange={(e) => setBloodSugarDtx(parseFloat(e.target.value) || undefined)}
                   className="w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm font-bold text-slate-800"
@@ -316,6 +351,8 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
                     type="number"
                     step="0.1"
                     required
+                    min={1}
+                    max={500}
                     value={weightKg}
                     onChange={(e) => setWeightKg(parseFloat(e.target.value) || 0)}
                     className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
@@ -327,6 +364,8 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
                     type="number"
                     step="0.5"
                     required
+                    min={30}
+                    max={300}
                     value={heightCm}
                     onChange={(e) => setHeightCm(parseFloat(e.target.value) || 0)}
                     className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"
@@ -337,6 +376,8 @@ export const HealthScreeningModal: React.FC<HealthScreeningModalProps> = ({
                   <input
                     type="number"
                     placeholder="รอบเอว"
+                    min={20}
+                    max={300}
                     value={waistCm ?? ''}
                     onChange={(e) => setWaistCm(parseFloat(e.target.value) || undefined)}
                     className="w-full px-2.5 py-1.5 bg-white border border-slate-300 rounded-lg text-xs"

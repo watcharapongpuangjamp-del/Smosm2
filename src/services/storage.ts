@@ -31,12 +31,64 @@ const KEYS = {
   MIGRATED: 'smart_osm_migrated_to_sqlite'
 };
 
+const BACKUP_VERSION = '2.0.0';
+
+type BackupPayload = {
+  version: typeof BACKUP_VERSION;
+  villages: Record<string, unknown>[];
+  vhvMembers: Record<string, unknown>[];
+  households: Record<string, unknown>[];
+  persons: Record<string, unknown>[];
+  screenings: Record<string, unknown>[];
+  appointments: Record<string, unknown>[];
+  tombstones: Record<string, unknown>[];
+  logs?: Record<string, unknown>[];
+};
+
+const BACKUP_COLLECTIONS = [
+  'villages',
+  'vhvMembers',
+  'households',
+  'persons',
+  'screenings',
+  'appointments',
+  'tombstones',
+] as const;
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function validateBackupPayload(payload: unknown): asserts payload is BackupPayload {
+  if (!isRecord(payload)) {
+    throw new Error('ไฟล์สำรองข้อมูลต้องเป็น JSON object');
+  }
+
+  if (payload.version !== BACKUP_VERSION) {
+    throw new Error(`ไม่รองรับไฟล์สำรองข้อมูลเวอร์ชัน ${String(payload.version || 'ไม่ระบุ')}`);
+  }
+
+  for (const collection of BACKUP_COLLECTIONS) {
+    const records = payload[collection];
+    if (!Array.isArray(records) || records.some((record) => !isRecord(record))) {
+      throw new Error(`รูปแบบข้อมูล ${collection} ไม่ถูกต้อง`);
+    }
+  }
+
+  if (payload.logs !== undefined && (!Array.isArray(payload.logs) || payload.logs.some((log) => !isRecord(log)))) {
+    throw new Error('รูปแบบข้อมูล logs ไม่ถูกต้อง');
+  }
+}
+
 class StorageService {
   private isReady = false;
 
   async init() {
     if (this.isReady) return;
     await dbService.init();
+    // Older builds stored duplicate health records in a local "sync" queue even
+    // though no server endpoint was configured. Remove that unused copy.
+    await dbService.execute('DROP TABLE IF EXISTS sync_queue;');
     await this.migrateIfNeeded();
     this.isReady = true;
   }
@@ -190,7 +242,6 @@ class StorageService {
       [household.id, household.houseNo, household.villageNo, household.villageName, household.subdistrict, household.district, household.province, household.latitude, household.longitude, household.headOfHouseholdName, household.vhvMemberId, household.sanitationRating, household.mosquitoLarvaFound ? 1 : 0, household.waterSource, household.wasteManagement, household.notes, household.createdAt, household.updatedAt]
     );
     
-    await this.queueSync('save', 'households', household);
     await this.log(household.createdAt === now ? 'create' : 'update', 'households', `บันทึกข้อมูลบ้านเลขที่ ${household.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -201,7 +252,6 @@ class StorageService {
 
     await dbService.run('DELETE FROM households WHERE id = ?', [id]);
     await this.addTombstone('households', h.villageNo, id);
-    await this.queueSync('delete', 'households', { id });
     await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -249,7 +299,6 @@ class StorageService {
       [person.id, person.householdId, person.villageNo, person.citizenId, person.title, person.firstName, person.lastName, person.gender, person.birthDate, person.birthDatePrecision, person.bloodGroup, person.phone, person.occupation, person.residentStatus, person.careCategory, JSON.stringify(person.chronicDiseases), person.weightKg, person.heightCm, person.bmi, person.systolic, person.diastolic, person.bloodSugarDtx, person.createdAt, person.updatedAt]
     );
     
-    await this.queueSync('save', 'persons', person);
     await this.log(person.createdAt === now ? 'create' : 'update', 'persons', `บันทึกข้อมูล ${person.firstName} ${person.lastName}`);
     await dbService.saveToWebStore();
   }
@@ -260,7 +309,6 @@ class StorageService {
 
     await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
     await this.addTombstone('persons', p.villageNo, id);
-    await this.queueSync('delete', 'persons', { id });
     await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
     await dbService.saveToWebStore();
   }
@@ -311,7 +359,6 @@ class StorageService {
       await this.savePerson(p);
     }
 
-    await this.queueSync('save', 'screenings', screening);
     await this.log('create', 'screenings', `คัดกรองสุขภาพ ${screening.date}`);
     await dbService.saveToWebStore();
   }
@@ -342,13 +389,11 @@ class StorageService {
       'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
     );
-    await this.queueSync('save', 'appointments', a);
     await dbService.saveToWebStore();
   }
 
   async updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
     await dbService.run('UPDATE appointments SET status = ?, updatedAt = ? WHERE id = ?', [status, new Date().toISOString(), id]);
-    await this.queueSync('update', 'appointments', { id, status });
     await dbService.saveToWebStore();
   }
 
@@ -358,7 +403,6 @@ class StorageService {
     if (villageNo) {
       await dbService.run('DELETE FROM appointments WHERE id = ?', [id]);
       await this.addTombstone('appointments', villageNo, id);
-      await this.queueSync('delete', 'appointments', { id });
       await dbService.saveToWebStore();
     }
   }
@@ -385,7 +429,7 @@ class StorageService {
 
   async exportAllData() {
     return {
-      version: '2.0.0',
+      version: BACKUP_VERSION,
       exportedAt: new Date().toISOString(),
       villages: await this.getVillages(),
       vhvMembers: await this.getVhvMembers(),
@@ -397,7 +441,10 @@ class StorageService {
     };
   }
 
-  async importAllData(payload: any) {
+  async importAllData(payload: unknown) {
+    // Validate before clearing the database so a malformed or unrelated JSON file
+    // cannot erase the user's existing records.
+    validateBackupPayload(payload);
     await this.clearAllData();
 
     if (payload.villages) {
@@ -477,62 +524,24 @@ class StorageService {
     window.location.reload();
   }
 
-  async queueSync(action: string, collection: string, payload: any) {
-    const id = `sync-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
-    await dbService.run(
-      'INSERT INTO sync_queue (id, action, collection, payload, timestamp) VALUES (?, ?, ?, ?, ?)',
-      [id, action, collection, JSON.stringify(payload), new Date().toISOString()]
-    );
-  }
-
-  async getSyncQueue() {
-    const res = await dbService.query('SELECT * FROM sync_queue ORDER BY timestamp ASC');
-    return (res.values || []).map((item: any) => ({
-      ...item,
-      payload: JSON.parse(item.payload || '{}')
-    }));
-  }
-
-  async clearSyncQueue() {
-    await dbService.execute('DELETE FROM sync_queue;');
-  }
-
-  async processBackgroundSync(): Promise<{ successCount: number; conflictCount: number }> {
-    const queue = await this.getSyncQueue();
-    if (queue.length === 0) return { successCount: 0, conflictCount: 0 };
-
-    let successCount = 0;
-    let conflictCount = 0;
-
-    for (const item of queue) {
-      // Simulate background cloud sync
-      if (Math.random() < 0.03) {
-        conflictCount++;
-      } else {
-        successCount++;
-        await dbService.run('DELETE FROM sync_queue WHERE id = ?', [item.id]);
-      }
-    }
-
-    if (successCount > 0) {
-      await this.log('sync', 'system', `ซิงค์ข้อมูลเบื้องหลังสำเร็จ ${successCount} รายการ`);
-      await dbService.saveToWebStore();
-    }
-
-    return { successCount, conflictCount };
-  }
-
   async resetToDefault() {
     localStorage.removeItem(KEYS.MIGRATED);
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;');
     await this.migrateIfNeeded();
     window.location.reload();
   }
 
   async clearAllData() {
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
-    localStorage.clear();
-    sessionStorage.clear();
+    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;');
+    // Only remove this application's legacy migration keys. Clearing both storage
+    // areas can erase unrelated data when the app shares an origin with another app.
+    for (const key of Object.values(KEYS)) {
+      if (key === KEYS.MIGRATED) continue;
+      localStorage.removeItem(key);
+    }
+    // Keep the database marked as migrated so a reload does not repopulate the
+    // deliberately cleared database with demonstration records.
+    localStorage.setItem(KEYS.MIGRATED, 'true');
     await dbService.saveToWebStore();
   }
 }

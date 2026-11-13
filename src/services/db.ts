@@ -182,13 +182,6 @@ class DatabaseService {
         details TEXT,
         user TEXT
       );`,
-      `CREATE TABLE IF NOT EXISTS sync_queue (
-        id TEXT PRIMARY KEY,
-        action TEXT,
-        collection TEXT,
-        payload TEXT,
-        timestamp TEXT
-      );`
     ];
 
     for (const query of queries) {

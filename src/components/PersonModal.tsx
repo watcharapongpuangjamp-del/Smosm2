@@ -165,8 +165,15 @@ export const PersonModal: React.FC<PersonModalProps> = ({
       return;
     }
 
-    if (citizenId.length > 0 && citizenId.length !== 13) {
-      alert('เลขประจำตัวประชาชนต้องครบ 13 หลัก');
+    const normalizedCitizenId = citizenId.trim();
+    const isUnchangedLegacyId =
+      Boolean(personToEdit) && normalizedCitizenId === personToEdit?.citizenId;
+    if (
+      normalizedCitizenId &&
+      !isUnchangedLegacyId &&
+      !validateThaiCitizenId(normalizedCitizenId).isValid
+    ) {
+      alert('เลขประจำตัวประชาชนต้องครบ 13 หลักและผ่านการตรวจสอบ Checksum');
       return;
     }
 
@@ -174,7 +181,8 @@ export const PersonModal: React.FC<PersonModalProps> = ({
       id: personToEdit?.id || `person-${Date.now()}`,
       householdId,
       villageNo,
-      citizenId: citizenId.trim() || `3501200${Math.floor(100000 + Math.random() * 900000)}`,
+      // Do not fabricate a checksum-invalid national ID when an ID is unavailable.
+      citizenId: normalizedCitizenId,
       title,
       firstName: firstName.trim(),
       lastName: lastName.trim(),
@@ -243,7 +251,7 @@ export const PersonModal: React.FC<PersonModalProps> = ({
             <input
               type="text"
               maxLength={13}
-              placeholder="กรอกตัวเลข 13 หลัก เช่น 3501200847192"
+              placeholder="กรอกตัวเลข 13 หลัก เช่น 3501200847199"
               value={citizenId}
               onChange={(e) => handleCitizenIdChange(e.target.value)}
               className="w-full px-3 py-2 text-sm bg-white border border-slate-300 rounded-lg font-mono focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none"

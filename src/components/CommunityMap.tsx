@@ -49,7 +49,19 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
     return true;
   });
 
-  const apiKey = (import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY || '';
+  const apiKey = ((import.meta as any).env?.VITE_GOOGLE_MAPS_API_KEY || '').trim();
+
+  if (!apiKey) {
+    return (
+      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-6 text-sm text-amber-900">
+        <h1 className="font-bold">ยังไม่ได้ตั้งค่า Google Maps</h1>
+        <p className="mt-2 leading-relaxed">
+          กำหนด <code className="rounded bg-amber-100 px-1 font-mono">VITE_GOOGLE_MAPS_API_KEY</code> ในไฟล์ environment
+          แล้วเริ่มแอปใหม่ โดยจำกัด key ให้ใช้ได้เฉพาะโดเมนหรือ Android app ที่อนุญาต
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4 pb-12">
@@ -107,7 +119,6 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
             defaultCenter={center}
             defaultZoom={16}
             mapId="DEMO_MAP_ID"
-            internalUsageAttributionIds={["gmp_mcp_codeassist_v1_aistudio"]}
             style={{ width: '100%', height: '100%' }}
             onClick={(e) => {
               if (e.detail.latLng) {
