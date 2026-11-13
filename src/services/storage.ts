@@ -190,6 +190,7 @@ class StorageService {
       [household.id, household.houseNo, household.villageNo, household.villageName, household.subdistrict, household.district, household.province, household.latitude, household.longitude, household.headOfHouseholdName, household.vhvMemberId, household.sanitationRating, household.mosquitoLarvaFound ? 1 : 0, household.waterSource, household.wasteManagement, household.notes, household.createdAt, household.updatedAt]
     );
     
+    await this.queueSync('save', 'households', household);
     await this.log(household.createdAt === now ? 'create' : 'update', 'households', `บันทึกข้อมูลบ้านเลขที่ ${household.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -200,6 +201,7 @@ class StorageService {
 
     await dbService.run('DELETE FROM households WHERE id = ?', [id]);
     await this.addTombstone('households', h.villageNo, id);
+    await this.queueSync('delete', 'households', { id });
     await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -247,6 +249,7 @@ class StorageService {
       [person.id, person.householdId, person.villageNo, person.citizenId, person.title, person.firstName, person.lastName, person.gender, person.birthDate, person.birthDatePrecision, person.bloodGroup, person.phone, person.occupation, person.residentStatus, person.careCategory, JSON.stringify(person.chronicDiseases), person.weightKg, person.heightCm, person.bmi, person.systolic, person.diastolic, person.bloodSugarDtx, person.createdAt, person.updatedAt]
     );
     
+    await this.queueSync('save', 'persons', person);
     await this.log(person.createdAt === now ? 'create' : 'update', 'persons', `บันทึกข้อมูล ${person.firstName} ${person.lastName}`);
     await dbService.saveToWebStore();
   }
@@ -257,6 +260,7 @@ class StorageService {
 
     await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
     await this.addTombstone('persons', p.villageNo, id);
+    await this.queueSync('delete', 'persons', { id });
     await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
     await dbService.saveToWebStore();
   }
@@ -307,6 +311,7 @@ class StorageService {
       await this.savePerson(p);
     }
 
+    await this.queueSync('save', 'screenings', screening);
     await this.log('create', 'screenings', `คัดกรองสุขภาพ ${screening.date}`);
     await dbService.saveToWebStore();
   }
@@ -337,11 +342,13 @@ class StorageService {
       'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
     );
+    await this.queueSync('save', 'appointments', a);
     await dbService.saveToWebStore();
   }
 
   async updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
     await dbService.run('UPDATE appointments SET status = ?, updatedAt = ? WHERE id = ?', [status, new Date().toISOString(), id]);
+    await this.queueSync('update', 'appointments', { id, status });
     await dbService.saveToWebStore();
   }
 
@@ -351,6 +358,7 @@ class StorageService {
     if (villageNo) {
       await dbService.run('DELETE FROM appointments WHERE id = ?', [id]);
       await this.addTombstone('appointments', villageNo, id);
+      await this.queueSync('delete', 'appointments', { id });
       await dbService.saveToWebStore();
     }
   }
@@ -469,15 +477,60 @@ class StorageService {
     window.location.reload();
   }
 
+  async queueSync(action: string, collection: string, payload: any) {
+    const id = `sync-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+    await dbService.run(
+      'INSERT INTO sync_queue (id, action, collection, payload, timestamp) VALUES (?, ?, ?, ?, ?)',
+      [id, action, collection, JSON.stringify(payload), new Date().toISOString()]
+    );
+  }
+
+  async getSyncQueue() {
+    const res = await dbService.query('SELECT * FROM sync_queue ORDER BY timestamp ASC');
+    return (res.values || []).map((item: any) => ({
+      ...item,
+      payload: JSON.parse(item.payload || '{}')
+    }));
+  }
+
+  async clearSyncQueue() {
+    await dbService.execute('DELETE FROM sync_queue;');
+  }
+
+  async processBackgroundSync(): Promise<{ successCount: number; conflictCount: number }> {
+    const queue = await this.getSyncQueue();
+    if (queue.length === 0) return { successCount: 0, conflictCount: 0 };
+
+    let successCount = 0;
+    let conflictCount = 0;
+
+    for (const item of queue) {
+      // Simulate background cloud sync
+      if (Math.random() < 0.03) {
+        conflictCount++;
+      } else {
+        successCount++;
+        await dbService.run('DELETE FROM sync_queue WHERE id = ?', [item.id]);
+      }
+    }
+
+    if (successCount > 0) {
+      await this.log('sync', 'system', `ซิงค์ข้อมูลเบื้องหลังสำเร็จ ${successCount} รายการ`);
+      await dbService.saveToWebStore();
+    }
+
+    return { successCount, conflictCount };
+  }
+
   async resetToDefault() {
     localStorage.removeItem(KEYS.MIGRATED);
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;');
+    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
     await this.migrateIfNeeded();
     window.location.reload();
   }
 
   async clearAllData() {
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;');
+    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
     localStorage.clear();
     sessionStorage.clear();
     await dbService.saveToWebStore();

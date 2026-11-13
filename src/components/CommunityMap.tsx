@@ -11,6 +11,8 @@ import {
   Heart,
   Navigation,
   CheckCircle2,
+  Download,
+  WifiOff,
 } from 'lucide-react';
 import { Household, Person, Village, VhvMember } from '../types';
 import { CARE_CATEGORY_CONFIG } from '../utils/health';
@@ -43,6 +45,47 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
 
   const [clickedCoords, setClickedCoords] = useState<{ lat: number; lng: number } | null>(null);
   const [filterMode, setFilterMode] = useState<'all' | 'bedridden' | 'larva'>('all');
+  const [downloadingTiles, setDownloadingTiles] = useState(false);
+  const [downloadSuccess, setDownloadSuccess] = useState(false);
+
+  const handleDownloadOfflineTiles = async () => {
+    setDownloadingTiles(true);
+    setDownloadSuccess(false);
+    try {
+      if ('caches' in window) {
+        const cache = await caches.open('map-tiles-cache');
+        const lat = currentVillage.centerLat;
+        const lng = currentVillage.centerLng;
+        const zoom = 16;
+        const x = Math.floor(((lng + 180) / 360) * Math.pow(2, zoom));
+        const y = Math.floor(
+          ((1 -
+            Math.log(Math.tan((lat * Math.PI) / 180) + 1 / Math.cos((lat * Math.PI) / 180)) /
+              Math.PI) /
+            2) *
+            Math.pow(2, zoom)
+        );
+
+        const tileUrls = [];
+        for (let dx = -1; dx <= 1; dx++) {
+          for (let dy = -1; dy <= 1; dy++) {
+            tileUrls.push(`https://a.tile.openstreetmap.org/${zoom}/${x + dx}/${y + dy}.png`);
+            tileUrls.push(`https://b.tile.openstreetmap.org/${zoom}/${x + dx}/${y + dy}.png`);
+          }
+        }
+
+        await cache.addAll(tileUrls.map((url) => new Request(url, { mode: 'no-cors' })));
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 4000);
+      } else {
+        alert('Cache API not supported in this browser');
+      }
+    } catch (err) {
+      console.error('Error pre-downloading map tiles:', err);
+    } finally {
+      setDownloadingTiles(false);
+    }
+  };
 
   // Determine center based on selected village or focused household
   const currentVillage = villages.find((v) => v.no === selectedVillageNo) || villages[0] || {
@@ -244,8 +287,23 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
           </p>
         </div>
 
-        {/* Filter buttons */}
+        {/* Filter buttons & Offline Map download */}
         <div className="flex flex-wrap items-center gap-2 text-xs">
+          <button
+            onClick={handleDownloadOfflineTiles}
+            disabled={downloadingTiles}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-800 rounded-lg font-semibold border border-blue-200 transition-colors disabled:opacity-50"
+            title="ดาวน์โหลด Tile แผนที่บริเวณพื้นที่รับผิดชอบไว้ดูแบบออฟไลน์"
+          >
+            <Download className={`w-3.5 h-3.5 ${downloadingTiles ? 'animate-bounce' : ''}`} />
+            <span>{downloadingTiles ? 'กำลังดาวน์โหลดแผนที่...' : 'ดาวน์โหลดแผนที่ออฟไลน์'}</span>
+          </button>
+          {downloadSuccess && (
+            <span className="text-emerald-700 font-medium bg-emerald-50 px-2 py-1 rounded-md border border-emerald-200 animate-fadeIn">
+              ✅ โหลดแผนที่ออฟไลน์สำเร็จ
+            </span>
+          )}
+
           <button
             onClick={() => setFilterMode('all')}
             className={`px-3 py-1.5 rounded-lg font-medium transition-colors ${

@@ -5,43 +5,60 @@ class DatabaseService {
   private sqlite: SQLiteConnection = new SQLiteConnection(CapacitorSQLite);
   private db: SQLiteDBConnection | null = null;
   private isInitialized = false;
+  private initPromise: Promise<void> | null = null;
 
-  async init() {
+  /**
+   * Initializes the database connection.
+   * Handles platform-specific setup (Web/Native).
+   */
+  async init(): Promise<void> {
     if (this.isInitialized) return;
+    if (this.initPromise) return this.initPromise;
 
-    try {
-      const platform = Capacitor.getPlatform();
-      
-      // Web specific initialization
-      if (platform === 'web') {
-        const jeepSqlite = document.createElement('jeep-sqlite');
-        document.body.appendChild(jeepSqlite);
-        await customElements.whenDefined('jeep-sqlite');
-        await this.sqlite.initWebStore();
+    this.initPromise = (async () => {
+      try {
+        const platform = Capacitor.getPlatform();
+        
+        // Web specific initialization: requires jeep-sqlite component
+        if (platform === 'web') {
+          if (!document.querySelector('jeep-sqlite')) {
+            const jeepSqlite = document.createElement('jeep-sqlite');
+            document.body.appendChild(jeepSqlite);
+            await customElements.whenDefined('jeep-sqlite');
+          }
+          await this.sqlite.initWebStore();
+        }
+
+        // Create or open the database connection
+        this.db = await this.sqlite.createConnection(
+          'smart_osm_db',
+          false,
+          'no-encryption',
+          1,
+          false
+        );
+        await this.db.open();
+
+        // Initialize table structures
+        await this.createTables();
+
+        this.isInitialized = true;
+        console.log('SQLite Database Initialized successfully');
+      } catch (err) {
+        console.error('Database initialization error:', err);
+        throw err;
+      } finally {
+        this.initPromise = null;
       }
+    })();
 
-      // Create or open the database
-      this.db = await this.sqlite.createConnection(
-        'smart_osm_db',
-        false,
-        'no-encryption',
-        1,
-        false
-      );
-      await this.db.open();
-
-      // Create tables
-      await this.createTables();
-
-      this.isInitialized = true;
-      console.log('SQLite Database Initialized');
-    } catch (err) {
-      console.error('Database initialization error:', err);
-      throw err;
-    }
+    return this.initPromise;
   }
 
-  private async createTables() {
+  /**
+   * Defines and creates the required database tables if they don't exist.
+   */
+  private async createTables(): Promise<void> {
     if (!this.db) return;
 
     const queries = [
@@ -164,6 +181,13 @@ class DatabaseService {
         collection TEXT,
         details TEXT,
         user TEXT
+      );`,
+      `CREATE TABLE IF NOT EXISTS sync_queue (
+        id TEXT PRIMARY KEY,
+        action TEXT,
+        collection TEXT,
+        payload TEXT,
+        timestamp TEXT
       );`
     ];
 
@@ -172,25 +196,49 @@ class DatabaseService {
     }
   }
 
+  /**
+   * Executes a SELECT query and returns the results.
+   */
   async query(statement: string, values?: any[]) {
     if (!this.db) await this.init();
     return await this.db!.query(statement, values);
   }
 
+  /**
+   * Executes an INSERT, UPDATE, or DELETE query with bound values.
+   */
   async run(statement: string, values?: any[]) {
     if (!this.db) await this.init();
     return await this.db!.run(statement, values);
   }
 
+  /**
+   * Executes one or more raw SQL statements (separated by semicolons).
+   */
   async execute(statement: string) {
     if (!this.db) await this.init();
     return await this.db!.execute(statement);
   }
 
-  async saveToWebStore() {
+  /**
+   * Persists the database to IndexedDB (Web environment only).
+   */
+  async saveToWebStore(): Promise<void> {
     const platform = Capacitor.getPlatform();
     if (platform === 'web') {
       await this.sqlite.saveToStore('smart_osm_db');
+    }
+  }
+
+  /**
+   * Closes the database connection and clears internal state.
+   */
+  async close(): Promise<void> {
+    if (this.db) {
+      await this.db.close();
+      await this.sqlite.closeConnection('smart_osm_db', false);
+      this.db = null;
+      this.isInitialized = false;
     }
   }
 }
