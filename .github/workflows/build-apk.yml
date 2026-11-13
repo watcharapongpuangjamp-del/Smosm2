@@ -67,7 +67,7 @@ jobs:
       - name: 📦 Install Node Dependencies & Build Web Bundle
         run: |
           echo "Installing dependencies..."
-          npm ci --include=dev --no-audit --prefer-offline
+          npm install --include=dev --no-audit --prefer-offline
           
           echo "Building Vite web bundle..."
           npm run build
