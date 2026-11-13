@@ -73,6 +73,8 @@
 
 ## 💻 การรันบนเครื่อง Local (Web Development)
 
+ตั้งค่า `VITE_GOOGLE_MAPS_API_KEY` ก่อนเปิดหน้าแผนที่ และจำกัด key ใน Google Cloud Console ให้ใช้ได้เฉพาะ web origin หรือ Android app ที่ได้รับอนุญาต ห้ามใส่ key ที่มีสิทธิ์เข้าถึงบริการอื่นเกินจำเป็น
+
 ```bash
 # ติดตั้ง dependencies
 npm install
