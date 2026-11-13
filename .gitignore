@@ -20,6 +20,7 @@ debug.keystore
 
 # Logs & Environment
 *.log
+public/assets/aistudio/logs_*.zip
 .env
 .env*.local
 npm-debug.log*

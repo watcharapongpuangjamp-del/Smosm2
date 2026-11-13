@@ -12,6 +12,7 @@ import {
 import * as XLSX from 'xlsx';
 import { storage } from '../services/storage';
 import { Household, Person } from '../types';
+import { validateThaiCitizenId } from '../utils/thaiId';
 
 interface DataExchangeModalProps {
   isOpen: boolean;
@@ -134,7 +135,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
 
     const samplePersons = [
       {
-        เลขประจำตัวประชาชน: '3501200998877',
+        เลขประจำตัวประชาชน: '3501200998871',
         คำนำหน้า: 'นาย',
         ชื่อ: 'สมชาย',
         นามสกุล: 'รักสงบ',
@@ -149,7 +150,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
         โรคประจำตัว: 'ความดันโลหิตสูง',
       },
       {
-        เลขประจำตัวประชาชน: '3501200112233',
+        เลขประจำตัวประชาชน: '3501200112237',
         คำนำหน้า: 'นาง',
         ชื่อ: 'สมพร',
         นามสกุล: 'รักสงบ',
@@ -206,6 +207,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
           const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
 
           let importedCount = 0;
+          let skippedCount = 0;
           const currentHouses = await storage.getHouseholds();
 
           for (let i = 0; i < rows.length; i++) {
@@ -214,7 +216,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
             const firstName = row['ชื่อ'] || row['firstname'];
             const lastName = row['นามสกุล'] || row['lastname'];
 
-            if (firstName && lastName) {
+            if (firstName && lastName && (!citizenId || validateThaiCitizenId(citizenId).isValid)) {
               const houseNo = String(row['บ้านเลขที่'] || '1');
               const villageNo = Number(row['หมู่ที่'] || 1);
 
@@ -247,7 +249,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
                 id: `person-imp-${Date.now()}-${i}`,
                 householdId: house.id,
                 villageNo,
-                citizenId: citizenId || `3501200${Math.floor(100000 + Math.random() * 900000)}`,
+                citizenId,
                 title: row['คำนำหน้า'] || 'นาย',
                 firstName,
                 lastName,
@@ -267,12 +269,14 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
 
               await storage.savePerson(newPerson);
               importedCount++;
+            } else {
+              skippedCount++;
             }
           }
 
           setImportStatus({
             success: true,
-            message: `นำเข้าข้อมูลประชากรจาก Excel สำเร็จแล้ว ${importedCount} ราย`,
+            message: `นำเข้าข้อมูลประชากรจาก Excel สำเร็จแล้ว ${importedCount} ราย${skippedCount ? ` (ข้าม ${skippedCount} แถวที่ไม่มีชื่อ/นามสกุล หรือมีเลขบัตรไม่ถูกต้อง)` : ''}`,
           });
           onDataReload();
         } catch (err: any) {

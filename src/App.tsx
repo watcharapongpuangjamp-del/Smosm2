@@ -121,27 +121,8 @@ export const App: React.FC = () => {
       await loadData();
       setIsInitializing(false);
 
-      // Process background sync if online
-      if (navigator.onLine) {
-        const res = await storage.processBackgroundSync();
-        if (res.successCount > 0) {
-          await loadData();
-        }
-      }
     };
     init();
-
-    const handleOnline = async () => {
-      const res = await storage.processBackgroundSync();
-      if (res.successCount > 0) {
-        await loadData();
-      }
-    };
-
-    window.addEventListener('online', handleOnline);
-    return () => {
-      window.removeEventListener('online', handleOnline);
-    };
   }, [loadData]);
 
   // --- Handlers: Household ---
