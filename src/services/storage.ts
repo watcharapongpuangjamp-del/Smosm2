@@ -607,7 +607,9 @@ class StorageService {
       try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original reset error. */ }
       throw error;
     }
-    localStorage.removeItem(KEYS.MIGRATED);
+    for (const key of Object.values(KEYS)) {
+      localStorage.removeItem(key);
+    }
     await this.migrateIfNeeded();
     window.location.reload();
   }
