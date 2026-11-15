@@ -116,31 +116,22 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
     const init = async () => {
-      await storage.init();
-      await loadData();
-      setIsInitializing(false);
-
-      // Process background sync if online
-      if (navigator.onLine) {
-        const res = await storage.processBackgroundSync();
-        if (res.successCount > 0) {
-          await loadData();
-        }
-      }
-    };
-    init();
-
-    const handleOnline = async () => {
-      const res = await storage.processBackgroundSync();
-      if (res.successCount > 0) {
+      try {
+        await storage.init();
         await loadData();
+      } catch (error) {
+        console.error('Smart OSM initialization failed:', error);
+      } finally {
+        if (active) setIsInitializing(false);
       }
     };
 
-    window.addEventListener('online', handleOnline);
+    void init();
     return () => {
-      window.removeEventListener('online', handleOnline);
+      active = false;
     };
   }, [loadData]);
 
