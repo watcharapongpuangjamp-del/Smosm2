@@ -632,7 +632,7 @@ class StorageService {
   async clearAllData() {
     await dbService.execute('BEGIN TRANSACTION;');
     try {
-      await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+      await this.clearDataTables(true);
       await dbService.execute('COMMIT;');
     } catch (error) {
       try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original clear error. */ }
