@@ -113,6 +113,7 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
 
       {/* Map Viewport Area */}
       <div className="relative w-full h-[580px] bg-slate-100 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {apiKey ? (
         <APIProvider apiKey={apiKey}>
           <Map
             defaultCenter={center}
@@ -198,6 +199,18 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
             )}
           </Map>
         </APIProvider>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+            <div className="max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-sm">
+              <MapPin className="mx-auto mb-2 h-8 w-8 text-amber-600" />
+              <p className="font-semibold text-slate-800">ยังไม่ได้ตั้งค่า Google Maps API Key</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                กำหนด VITE_GOOGLE_MAPS_API_KEY ใน environment ของระบบ Build แล้วสร้าง APK ใหม่
+                ข้อมูลบ้านและพิกัดที่บันทึกไว้ยังคงอยู่ในฐานข้อมูล
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Map Legend Overlay */}
         <div className="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-xs p-3 rounded-xl shadow-md border border-slate-200 text-xs space-y-1.5 max-w-[220px]">
