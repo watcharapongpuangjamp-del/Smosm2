@@ -33,11 +33,21 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
     centerLng: 98.9853,
   };
 
-  const center = focusedHousehold 
-    ? { lat: focusedHousehold.latitude, lng: focusedHousehold.longitude }
+  const hasCoordinates = (house: Household) =>
+    Number.isFinite(house.latitude) &&
+    Number.isFinite(house.longitude) &&
+    house.latitude >= -90 && house.latitude <= 90 &&
+    house.longitude >= -180 && house.longitude <= 180 &&
+    !(house.latitude === 0 && house.longitude === 0);
+
+  const focusedHasCoordinates = focusedHousehold ? hasCoordinates(focusedHousehold) : false;
+  const center = focusedHasCoordinates
+    ? { lat: focusedHousehold!.latitude, lng: focusedHousehold!.longitude }
     : { lat: currentVillage.centerLat, lng: currentVillage.centerLng };
 
+  const unlocatedHouseCount = households.filter((house) => !hasCoordinates(house)).length;
   const displayHouses = households.filter((h) => {
+    if (!hasCoordinates(h)) return false;
     if (selectedVillageNo !== 0 && h.villageNo !== selectedVillageNo) return false;
     if (filterMode === 'larva' && !h.mosquitoLarvaFound) return false;
     if (filterMode === 'bedridden') {
@@ -62,6 +72,7 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             คลิกบนหมุดเพื่อดูข้อมูลบ้าน หรือคลิกบนแผนที่เพื่อดึงพิกัดเพิ่มหลังคาเรือนใหม่
+            {unlocatedHouseCount > 0 && ` • ยังไม่มีพิกัด ${unlocatedHouseCount} หลัง (ไม่แสดงหมุด)`}
           </p>
         </div>
 
