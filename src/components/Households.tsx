@@ -298,6 +298,11 @@ export const Households: React.FC<HouseholdsProps> = ({
                     </button>
                     <button
                       onClick={() => {
+                        const memberCount = persons.filter((person) => person.householdId === house.id).length;
+                        if (memberCount > 0) {
+                          alert(`ไม่สามารถลบบ้านเลขที่ ${house.houseNo} ได้ เนื่องจากยังมีสมาชิก ${memberCount} ราย กรุณาย้ายสมาชิกไปบ้านอื่นก่อน`);
+                          return;
+                        }
                         if (confirm(`ยืนยันการลบบ้านเลขที่ ${house.houseNo} หรือไม่?`)) {
                           onDeleteHousehold(house.id);
                         }
