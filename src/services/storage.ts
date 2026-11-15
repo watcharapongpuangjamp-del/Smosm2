@@ -46,8 +46,9 @@ class StorageService {
     if (isMigrated) return;
 
     console.log('Migrating data from localStorage to SQLite...');
-
-    // Villages
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      // Villages
     const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || JSON.stringify(INITIAL_VILLAGES));
     for (const v of villages) {
       await dbService.run(
@@ -119,8 +120,13 @@ class StorageService {
       );
     }
 
-    localStorage.setItem(KEYS.MIGRATED, 'true');
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original migration error. */ }
+      throw error;
+    }
     await dbService.saveToWebStore();
+    localStorage.setItem(KEYS.MIGRATED, 'true');
     console.log('Migration completed.');
   }
 
@@ -189,8 +195,6 @@ class StorageService {
       'INSERT OR REPLACE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [household.id, household.houseNo, household.villageNo, household.villageName, household.subdistrict, household.district, household.province, household.latitude, household.longitude, household.headOfHouseholdName, household.vhvMemberId, household.sanitationRating, household.mosquitoLarvaFound ? 1 : 0, household.waterSource, household.wasteManagement, household.notes, household.createdAt, household.updatedAt]
     );
-    
-    await this.queueSync('save', 'households', household);
     await this.log(household.createdAt === now ? 'create' : 'update', 'households', `บันทึกข้อมูลบ้านเลขที่ ${household.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -201,7 +205,6 @@ class StorageService {
 
     await dbService.run('DELETE FROM households WHERE id = ?', [id]);
     await this.addTombstone('households', h.villageNo, id);
-    await this.queueSync('delete', 'households', { id });
     await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
     await dbService.saveToWebStore();
   }
@@ -248,8 +251,6 @@ class StorageService {
       'INSERT OR REPLACE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [person.id, person.householdId, person.villageNo, person.citizenId, person.title, person.firstName, person.lastName, person.gender, person.birthDate, person.birthDatePrecision, person.bloodGroup, person.phone, person.occupation, person.residentStatus, person.careCategory, JSON.stringify(person.chronicDiseases), person.weightKg, person.heightCm, person.bmi, person.systolic, person.diastolic, person.bloodSugarDtx, person.createdAt, person.updatedAt]
     );
-    
-    await this.queueSync('save', 'persons', person);
     await this.log(person.createdAt === now ? 'create' : 'update', 'persons', `บันทึกข้อมูล ${person.firstName} ${person.lastName}`);
     await dbService.saveToWebStore();
   }
@@ -260,7 +261,6 @@ class StorageService {
 
     await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
     await this.addTombstone('persons', p.villageNo, id);
-    await this.queueSync('delete', 'persons', { id });
     await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
     await dbService.saveToWebStore();
   }
@@ -310,8 +310,6 @@ class StorageService {
       p.bloodSugarDtx = screening.bloodSugarDtx;
       await this.savePerson(p);
     }
-
-    await this.queueSync('save', 'screenings', screening);
     await this.log('create', 'screenings', `คัดกรองสุขภาพ ${screening.date}`);
     await dbService.saveToWebStore();
   }
@@ -342,23 +340,20 @@ class StorageService {
       'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
     );
-    await this.queueSync('save', 'appointments', a);
     await dbService.saveToWebStore();
   }
 
   async updateAppointmentStatus(id: string, status: AppointmentStatus): Promise<void> {
     await dbService.run('UPDATE appointments SET status = ?, updatedAt = ? WHERE id = ?', [status, new Date().toISOString(), id]);
-    await this.queueSync('update', 'appointments', { id, status });
     await dbService.saveToWebStore();
   }
 
   async deleteAppointment(id: string): Promise<void> {
     const res = await dbService.query('SELECT villageNo FROM appointments WHERE id = ?', [id]);
-    const villageNo = res.values?.[0]?.villageNo;
-    if (villageNo) {
+    if (res.values?.length) {
+      const villageNo = Number(res.values[0].villageNo ?? 0);
       await dbService.run('DELETE FROM appointments WHERE id = ?', [id]);
       await this.addTombstone('appointments', villageNo, id);
-      await this.queueSync('delete', 'appointments', { id });
       await dbService.saveToWebStore();
     }
   }
@@ -394,11 +389,31 @@ class StorageService {
       screenings: await this.getScreenings(),
       appointments: await this.getAppointments(),
       tombstones: await this.getTombstones(),
+      logs: await this.getAuditLogs(),
     };
   }
 
   async importAllData(payload: any) {
-    await this.clearAllData();
+    if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+      throw new Error('ไฟล์สำรองไม่ถูกต้อง: รูปแบบข้อมูลต้องเป็น Object');
+    }
+    const requiredCollections = ['villages', 'vhvMembers', 'households', 'persons', 'screenings', 'appointments'];
+    for (const key of requiredCollections) {
+      if (!Array.isArray(payload[key])) {
+        throw new Error(`ไฟล์สำรองไม่สมบูรณ์: ไม่พบรายการ ${key}`);
+      }
+    }
+    for (const key of ['tombstones', 'logs']) {
+      if (payload[key] !== undefined && !Array.isArray(payload[key])) {
+        throw new Error(`ไฟล์สำรองไม่ถูกต้อง: ${key} ต้องเป็น Array`);
+      }
+    }
+
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      await dbService.execute(
+        'DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;'
+      );
 
     if (payload.villages) {
       for (const v of payload.villages) {
@@ -472,8 +487,13 @@ class StorageService {
       }
     }
 
-    localStorage.setItem(KEYS.MIGRATED, 'true'); // Prevent re-migration
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original import error. */ }
+      throw error;
+    }
     await dbService.saveToWebStore();
+    localStorage.setItem(KEYS.MIGRATED, 'true'); // Prevent re-migration
     window.location.reload();
   }
 
@@ -497,29 +517,12 @@ class StorageService {
     await dbService.execute('DELETE FROM sync_queue;');
   }
 
+  /**
+   * Cloud sync is not configured in this build.
+   * Never report queued local changes as uploaded or delete pending queue rows.
+   */
   async processBackgroundSync(): Promise<{ successCount: number; conflictCount: number }> {
-    const queue = await this.getSyncQueue();
-    if (queue.length === 0) return { successCount: 0, conflictCount: 0 };
-
-    let successCount = 0;
-    let conflictCount = 0;
-
-    for (const item of queue) {
-      // Simulate background cloud sync
-      if (Math.random() < 0.03) {
-        conflictCount++;
-      } else {
-        successCount++;
-        await dbService.run('DELETE FROM sync_queue WHERE id = ?', [item.id]);
-      }
-    }
-
-    if (successCount > 0) {
-      await this.log('sync', 'system', `ซิงค์ข้อมูลเบื้องหลังสำเร็จ ${successCount} รายการ`);
-      await dbService.saveToWebStore();
-    }
-
-    return { successCount, conflictCount };
+    return { successCount: 0, conflictCount: 0 };
   }
 
   async resetToDefault() {
@@ -531,8 +534,10 @@ class StorageService {
 
   async clearAllData() {
     await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
-    localStorage.clear();
-    sessionStorage.clear();
+    for (const key of Object.values(KEYS)) {
+      localStorage.removeItem(key);
+    }
+    localStorage.setItem(KEYS.MIGRATED, 'true');
     await dbService.saveToWebStore();
   }
 }
