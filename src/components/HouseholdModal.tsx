@@ -29,7 +29,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
   const [vhvMemberId, setVhvMemberId] = useState('');
   const [latitude, setLatitude] = useState<number>(18.7883);
   const [longitude, setLongitude] = useState<number>(98.9853);
-  const [sanitationRating, setSanitationRating] = useState<'good' | 'fair' | 'poor'>('good');
+  const [sanitationRating, setSanitationRating] = useState<Household['sanitationRating']>('good');
   const [mosquitoLarvaFound, setMosquitoLarvaFound] = useState(false);
   const [waterSource, setWaterSource] = useState('ประปาหมู่บ้าน');
   const [wasteManagement, setWasteManagement] = useState('คัดแยกขยะและทิ้งจุดรวม');
@@ -302,6 +302,7 @@ export const HouseholdModal: React.FC<HouseholdModalProps> = ({
                 <option value="good">ดี (ถูกสุขอนามัย น้ำระบายดี ไม่มีแหล่งเพาะพันธุ์เชื้อโรค)</option>
                 <option value="fair">พอใช้ (มีของเหลือทิ้งหรือน้ำขังบางจุด)</option>
                 <option value="poor">ต้องปรับปรุง (มีขยะสะสม น้ำท่วมขัง)</option>
+                <option value="unknown">ยังไม่ได้ประเมิน</option>
               </select>
             </div>
 
