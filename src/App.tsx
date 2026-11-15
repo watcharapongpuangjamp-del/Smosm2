@@ -183,8 +183,12 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteHousehold = async (id: string) => {
-    await storage.deleteHousehold(id);
-    await loadData();
+    try {
+      await storage.deleteHousehold(id);
+      await loadData();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'ไม่สามารถลบหลังคาเรือนได้');
+    }
   };
 
   const handleViewHouseholdDetail = (household: Household) => {
