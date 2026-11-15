@@ -1,5 +1,10 @@
 {
   "appId": "th.in.smartosm.app",
   "appName": "Smart OSM Next",
-  "webDir": "dist"
+  "webDir": "dist",
+  "plugins": {
+    "CapacitorSQLite": {
+      "androidIsEncryption": true
+    }
+  }
 }
