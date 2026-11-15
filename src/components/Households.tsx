@@ -257,14 +257,18 @@ export const Households: React.FC<HouseholdsProps> = ({
                             ? 'text-emerald-600'
                             : house.sanitationRating === 'fair'
                             ? 'text-amber-600'
-                            : 'text-rose-600'
+                            : house.sanitationRating === 'poor'
+                            ? 'text-rose-600'
+                            : 'text-slate-500'
                         }`}
                       >
                         {house.sanitationRating === 'good'
                           ? 'ดี'
                           : house.sanitationRating === 'fair'
                           ? 'พอใช้'
-                          : 'ต้องปรับปรุง'}
+                          : house.sanitationRating === 'poor'
+                          ? 'ต้องปรับปรุง'
+                          : 'ยังไม่ได้ประเมิน'}
                       </span>
                     </span>
 
