@@ -205,74 +205,164 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
           const worksheet = workbook.Sheets[firstSheetName];
           const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
 
-          let importedCount = 0;
-          const currentHouses = await storage.getHouseholds();
+          const [currentHouses, currentPersons, villages, vhvMembers] = await Promise.all([
+            storage.getHouseholds(),
+            storage.getPersons(),
+            storage.getVillages(),
+            storage.getVhvMembers(),
+          ]);
+
+          const newHouseholds: Household[] = [];
+          const newPersons: Person[] = [];
+          const knownHouses = [...currentHouses];
+          const knownCitizenIds = new Set(
+            currentPersons.map((person) => String(person.citizenId || '').trim()).filter(Boolean)
+          );
+          let duplicateCount = 0;
+          let invalidCount = 0;
+          const now = new Date().toISOString();
+
+          const parseDate = (value: unknown): { date: string; precision?: string } | null => {
+            if (typeof value === 'number') {
+              const parsed = XLSX.SSF.parse_date_code(value);
+              if (!parsed) return null;
+              return {
+                date: `${String(parsed.y).padStart(4, '0')}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`,
+              };
+            }
+            const text = String(value ?? '').trim();
+            if (/^\\d{4}$/.test(text)) return { date: `${text}-01-01`, precision: 'year' };
+            if (/^\\d{4}-\\d{2}-\\d{2}$/.test(text)) return { date: text };
+            const dmy = text.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
+            if (dmy) {
+              const year = Number(dmy[3]);
+              const month = Number(dmy[2]);
+              const day = Number(dmy[1]);
+              const date = new Date(Date.UTC(year, month - 1, day));
+              if (date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day) {
+                return { date: `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` };
+              }
+            }
+            return null;
+          };
+
+          const toOptionalNumber = (value: unknown): number | undefined => {
+            if (value === undefined || value === null || value === '') return undefined;
+            const parsed = Number(value);
+            return Number.isFinite(parsed) ? parsed : undefined;
+          };
 
           for (let i = 0; i < rows.length; i++) {
             const row = rows[i];
-            const citizenId = String(row['เลขประจำตัวประชาชน'] || '').replace(/\D/g, '');
-            const firstName = row['ชื่อ'] || row['firstname'];
-            const lastName = row['นามสกุล'] || row['lastname'];
+            const firstName = String(row['ชื่อ'] ?? row['firstname'] ?? '').trim();
+            const lastName = String(row['นามสกุล'] ?? row['lastname'] ?? '').trim();
+            const houseNo = String(row['บ้านเลขที่'] ?? '').trim();
+            const villageNo = Number(row['หมู่ที่']);
+            const rawCitizenId = String(row['เลขประจำตัวประชาชน'] ?? '').trim();
+            const citizenId = rawCitizenId.replace(/\\D/g, '');
+            const birth = parseDate(row['วันเกิด']);
+            const rawGender = String(row['เพศ'] ?? '').trim().toLowerCase();
+            const gender = rawGender === 'หญิง' || rawGender === 'female'
+              ? 'female'
+              : rawGender === 'ชาย' || rawGender === 'male'
+                ? 'male'
+                : null;
 
-            if (firstName && lastName) {
-              const houseNo = String(row['บ้านเลขที่'] || '1');
-              const villageNo = Number(row['หมู่ที่'] || 1);
-
-              let house = currentHouses.find((h) => h.houseNo === houseNo && h.villageNo === villageNo);
-              if (!house) {
-                house = {
-                  id: `house-imp-${Date.now()}-${i}`,
-                  houseNo,
-                  villageNo,
-                  villageName: `หมู่ที่ ${villageNo}`,
-                  subdistrict: 'ตำบลสุขภาพดี',
-                  district: 'อำเภอเมือง',
-                  province: 'เชียงใหม่',
-                  latitude: 18.7883 + (Math.random() - 0.5) * 0.005,
-                  longitude: 98.9853 + (Math.random() - 0.5) * 0.005,
-                  headOfHouseholdName: `${firstName} ${lastName}`,
-                  vhvMemberId: 'vhv-1',
-                  sanitationRating: 'good',
-                  mosquitoLarvaFound: false,
-                  waterSource: 'ประปาหมู่บ้าน',
-                  wasteManagement: 'คัดแยกขยะ',
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
-                };
-                await storage.saveHousehold(house);
-                currentHouses.push(house);
-              }
-
-              const newPerson: Person = {
-                id: `person-imp-${Date.now()}-${i}`,
-                householdId: house.id,
-                villageNo,
-                citizenId: citizenId || `3501200${Math.floor(100000 + Math.random() * 900000)}`,
-                title: row['คำนำหน้า'] || 'นาย',
-                firstName,
-                lastName,
-                gender: row['เพศ'] === 'หญิง' ? 'female' : 'male',
-                birthDate: row['วันเกิด'] || '1980-01-01',
-                bloodGroup: (row['หมู่เลือด'] as any) || 'O',
-                phone: row['เบอร์โทร'] ? String(row['เบอร์โทร']) : undefined,
-                occupation: row['อาชีพ'] || undefined,
-                residentStatus: 'resident',
-                careCategory: (row['ภาวะพึ่งพิง'] as any) || 'active',
-                chronicDiseases: row['โรคประจำตัว']
-                  ? String(row['โรคประจำตัว']).split(',').map((s) => s.trim())
-                  : [],
-                createdAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              };
-
-              await storage.savePerson(newPerson);
-              importedCount++;
+            if (!firstName || !lastName || !houseNo || !Number.isInteger(villageNo) || villageNo <= 0 || !birth || !gender) {
+              invalidCount++;
+              continue;
             }
+
+            // Never manufacture an identity number. A supplied value must contain exactly 13 digits.
+            if (rawCitizenId && !/^\\d{13}$/.test(citizenId)) {
+              invalidCount++;
+              continue;
+            }
+            if (citizenId && knownCitizenIds.has(citizenId)) {
+              duplicateCount++;
+              continue;
+            }
+
+            let house = knownHouses.find((item) => item.houseNo === houseNo && item.villageNo === villageNo);
+            if (!house) {
+              const village = villages.find((item) => item.no === villageNo);
+              const assignedVhv = vhvMembers.find((member) => member.villageNo === villageNo && member.isActive);
+              const latitude = toOptionalNumber(row['ละติจูด']);
+              const longitude = toOptionalNumber(row['ลองจิจูด']);
+              const hasCoordinates = latitude !== undefined && longitude !== undefined
+                && latitude >= -90 && latitude <= 90 && longitude >= -180 && longitude <= 180
+                && !(latitude === 0 && longitude === 0);
+
+              house = {
+                id: `house-imp-${crypto.randomUUID()}`,
+                houseNo,
+                villageNo,
+                villageName: String(row['ชื่อหมู่บ้าน'] ?? village?.name ?? ''),
+                subdistrict: String(row['ตำบล'] ?? village?.subdistrict ?? ''),
+                district: String(row['อำเภอ'] ?? village?.district ?? ''),
+                province: String(row['จังหวัด'] ?? village?.province ?? ''),
+                latitude: hasCoordinates ? latitude! : 0,
+                longitude: hasCoordinates ? longitude! : 0,
+                headOfHouseholdName: `${firstName} ${lastName}`,
+                vhvMemberId: assignedVhv?.id ?? '',
+                sanitationRating: String(row['สุขาภิบาล'] ?? 'unknown') as Household['sanitationRating'],
+                mosquitoLarvaFound: ['พบ', 'true', '1', 'yes'].includes(String(row['พบลูกน้ำยุงลาย'] ?? '').trim().toLowerCase()),
+                waterSource: String(row['แหล่งน้ำ'] ?? 'ยังไม่ระบุ'),
+                wasteManagement: String(row['การจัดการขยะ'] ?? 'ยังไม่ระบุ'),
+                notes: hasCoordinates ? 'นำเข้าจากไฟล์ Excel' : 'นำเข้าจากไฟล์ Excel; ยังไม่ได้ระบุพิกัดบ้าน',
+                createdAt: now,
+                updatedAt: now,
+              };
+              newHouseholds.push(house);
+              knownHouses.push(house);
+            }
+
+            const careValue = String(row['ภาวะพึ่งพิง'] ?? 'active').trim();
+            const careCategory = ['active', 'homebound', 'bedridden'].includes(careValue)
+              ? careValue as Person['careCategory']
+              : 'active';
+
+            const person: Person = {
+              id: `person-imp-${crypto.randomUUID()}`,
+              householdId: house.id,
+              villageNo,
+              citizenId,
+              title: String(row['คำนำหน้า'] ?? ''),
+              firstName,
+              lastName,
+              gender,
+              birthDate: birth.date,
+              birthDatePrecision: birth.precision,
+              bloodGroup: String(row['หมู่เลือด'] ?? ''),
+              phone: row['เบอร์โทร'] ? String(row['เบอร์โทร']) : undefined,
+              occupation: row['อาชีพ'] ? String(row['อาชีพ']) : undefined,
+              residentStatus: String(row['สถานะการอยู่อาศัย'] ?? 'resident'),
+              careCategory,
+              chronicDiseases: row['โรคประจำตัว']
+                ? String(row['โรคประจำตัว']).split(',').map((item) => item.trim()).filter(Boolean)
+                : [],
+              weightKg: toOptionalNumber(row['น้ำหนัก_กก']),
+              heightCm: toOptionalNumber(row['ส่วนสูง_ซม']),
+              bmi: toOptionalNumber(row['BMI']),
+              systolic: toOptionalNumber(row['ความดัน_บน']),
+              diastolic: toOptionalNumber(row['ความดัน_ล่าง']),
+              bloodSugarDtx: toOptionalNumber(row['น้ำตาล_DTX']),
+              createdAt: now,
+              updatedAt: now,
+            };
+
+            newPersons.push(person);
+            if (citizenId) knownCitizenIds.add(citizenId);
           }
 
+          if (newPersons.length === 0) {
+            throw new Error('ไม่พบแถวข้อมูลที่ถูกต้องสำหรับนำเข้า กรุณาตรวจสอบชื่อ-สกุล บ้านเลขที่ หมู่ที่ เพศ และวันเกิด');
+          }
+
+          await storage.importExcelBatch(newHouseholds, newPersons);
           setImportStatus({
             success: true,
-            message: `นำเข้าข้อมูลประชากรจาก Excel สำเร็จแล้ว ${importedCount} ราย`,
+            message: `นำเข้าสำเร็จ ${newPersons.length} ราย เพิ่มหลังคาเรือน ${newHouseholds.length} หลัง; ข้ามข้อมูลซ้ำ ${duplicateCount} ราย และข้อมูลไม่ครบ/รูปแบบไม่ถูกต้อง ${invalidCount} ราย`,
           });
           onDataReload();
         } catch (err: any) {
