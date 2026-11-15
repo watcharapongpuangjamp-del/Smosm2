@@ -29,14 +29,53 @@ class DatabaseService {
           await this.sqlite.initWebStore();
         }
 
-        // Create or open the database connection
-        this.db = await this.sqlite.createConnection(
-          'smart_osm_db',
-          false,
-          'no-encryption',
-          1,
-          false
-        );
+        const databaseName = 'smart_osm_db';
+
+        if (platform === 'web') {
+          // SQLCipher is not supported by the Web/WASM implementation.
+          this.db = await this.sqlite.createConnection(
+            databaseName,
+            false,
+            'no-encryption',
+            1,
+            false
+          );
+        } else {
+          const encryptionConfigured = (await this.sqlite.isInConfigEncryption()).result;
+          if (!encryptionConfigured) {
+            throw new Error('SQLCipher is not enabled in the native Capacitor configuration.');
+          }
+
+          const databaseExists = (await this.sqlite.isDatabase(databaseName)).result;
+          const databaseEncrypted = databaseExists
+            ? (await this.sqlite.isDatabaseEncrypted(databaseName)).result
+            : false;
+          const secretStored = (await this.sqlite.isSecretStored()).result;
+
+          // Never generate a replacement key for an encrypted database: doing so would
+          // permanently prevent access to the existing records.
+          if (databaseExists && databaseEncrypted && !secretStored) {
+            throw new Error('พบฐานข้อมูลที่เข้ารหัสแล้ว แต่ไม่พบกุญแจใน Secure Storage ข้อมูลเดิมถูกเก็บไว้และยังไม่ถูกลบ');
+          }
+
+          if (!secretStored) {
+            const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+            const passphrase = Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+            await this.sqlite.setEncryptionSecret(passphrase);
+          }
+
+          // "encryption" migrates an existing plaintext DB; "secret" creates or opens
+          // an already-encrypted DB using the key stored by the native SQLite plugin.
+          const encryptionMode = databaseExists && !databaseEncrypted ? 'encryption' : 'secret';
+          this.db = await this.sqlite.createConnection(
+            databaseName,
+            true,
+            encryptionMode,
+            1,
+            false
+          );
+        }
+
         await this.db.open();
 
         // Initialize table structures
