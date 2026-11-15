@@ -203,9 +203,21 @@ class StorageService {
     const h = await this.getHouseholdById(id);
     if (!h) return;
 
-    await dbService.run('DELETE FROM households WHERE id = ?', [id]);
-    await this.addTombstone('households', h.villageNo, id);
-    await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
+    const members = await this.getPersonsByHousehold(id);
+    if (members.length > 0) {
+      throw new Error(`ไม่สามารถลบบ้านเลขที่ ${h.houseNo} ได้ เนื่องจากยังมีสมาชิก ${members.length} ราย กรุณาย้ายสมาชิกไปบ้านอื่นก่อน`);
+    }
+
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      await dbService.run('DELETE FROM households WHERE id = ?', [id]);
+      await this.addTombstone('households', h.villageNo, id);
+      await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      throw error;
+    }
     await dbService.saveToWebStore();
   }
 
