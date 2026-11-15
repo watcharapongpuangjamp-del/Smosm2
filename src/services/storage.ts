@@ -271,9 +271,16 @@ class StorageService {
     const p = await this.getPersonById(id);
     if (!p) return;
 
-    await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
-    await this.addTombstone('persons', p.villageNo, id);
-    await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
+      await this.addTombstone('persons', p.villageNo, id);
+      await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      throw error;
+    }
     await dbService.saveToWebStore();
   }
 
@@ -361,13 +368,21 @@ class StorageService {
   }
 
   async deleteAppointment(id: string): Promise<void> {
-    const res = await dbService.query('SELECT villageNo FROM appointments WHERE id = ?', [id]);
-    if (res.values?.length) {
-      const villageNo = Number(res.values[0].villageNo ?? 0);
+    const res = await dbService.query('SELECT villageNo, title FROM appointments WHERE id = ?', [id]);
+    if (!res.values?.length) return;
+
+    const villageNo = Number(res.values[0].villageNo ?? 0);
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
       await dbService.run('DELETE FROM appointments WHERE id = ?', [id]);
       await this.addTombstone('appointments', villageNo, id);
-      await dbService.saveToWebStore();
+      await this.log('delete', 'appointments', `ลบนัดหมาย ${res.values[0].title || id}`);
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      throw error;
     }
+    await dbService.saveToWebStore();
   }
 
   // --- Utils ---
