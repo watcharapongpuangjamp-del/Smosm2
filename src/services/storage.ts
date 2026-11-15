@@ -484,9 +484,7 @@ class StorageService {
 
     await dbService.execute('BEGIN TRANSACTION;');
     try {
-      await dbService.execute(
-        'DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs;'
-      );
+      await this.clearDataTables(false);
 
     if (payload.villages) {
       for (const v of payload.villages) {
@@ -598,10 +596,27 @@ class StorageService {
     return { successCount: 0, conflictCount: 0 };
   }
 
+  private async clearDataTables(clearSyncQueue: boolean): Promise<void> {
+    const tables = [
+      'villages',
+      'vhv_members',
+      'households',
+      'persons',
+      'screenings',
+      'appointments',
+      'tombstones',
+      'audit_logs',
+    ];
+    if (clearSyncQueue) tables.push('sync_queue');
+    for (const table of tables) {
+      await dbService.run(`DELETE FROM ${table}`);
+    }
+  }
+
   async resetToDefault() {
     await dbService.execute('BEGIN TRANSACTION;');
     try {
-      await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+      await this.clearDataTables(true);
       await dbService.execute('COMMIT;');
     } catch (error) {
       try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original reset error. */ }
