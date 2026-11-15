@@ -46,13 +46,22 @@ class StorageService {
     if (isMigrated) return;
 
     console.log('Migrating data from localStorage to SQLite...');
+
+    const legacyTombstones = JSON.parse(localStorage.getItem(KEYS.TOMBSTONES) || '[]');
+    const existingTombstones = await this.getTombstones();
+    const deletedIds = new Map<string, Set<string>>();
+    for (const tombstone of [...existingTombstones, ...legacyTombstones]) {
+      if (!deletedIds.has(tombstone.collection)) deletedIds.set(tombstone.collection, new Set<string>());
+      deletedIds.get(tombstone.collection)!.add(tombstone.id);
+    }
+
     await dbService.execute('BEGIN TRANSACTION;');
     try {
       // Villages
     const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || JSON.stringify(INITIAL_VILLAGES));
     for (const v of villages) {
       await dbService.run(
-        'INSERT OR REPLACE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
         [v.id, v.no, v.name, v.subdistrict, v.district, v.province, v.centerLat, v.centerLng]
       );
     }
@@ -60,8 +69,9 @@ class StorageService {
     // VHV Members
     const vhv = JSON.parse(localStorage.getItem('smart_osm_vhv_members') || JSON.stringify(INITIAL_VHV_MEMBERS));
     for (const m of vhv) {
+      if (deletedIds.get('vhv_members')?.has(m.id)) continue;
       await dbService.run(
-        'INSERT OR REPLACE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [m.id, m.name, m.citizenId, m.phone, m.villageNo, m.zoneName, JSON.stringify(m.assignedHouseIds), m.isActive ? 1 : 0, m.registeredDate]
       );
     }
@@ -69,8 +79,9 @@ class StorageService {
     // Households
     const households = JSON.parse(localStorage.getItem('smart_osm_households') || JSON.stringify(INITIAL_HOUSEHOLDS));
     for (const h of households) {
+      if (deletedIds.get('households')?.has(h.id)) continue;
       await dbService.run(
-        'INSERT OR REPLACE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [h.id, h.houseNo, h.villageNo, h.villageName, h.subdistrict, h.district, h.province, h.latitude, h.longitude, h.headOfHouseholdName, h.vhvMemberId, h.sanitationRating, h.mosquitoLarvaFound ? 1 : 0, h.waterSource, h.wasteManagement, h.notes, h.createdAt, h.updatedAt]
       );
     }
@@ -78,8 +89,9 @@ class StorageService {
     // Persons
     const persons = JSON.parse(localStorage.getItem('smart_osm_persons') || JSON.stringify(INITIAL_PERSONS));
     for (const p of persons) {
+      if (deletedIds.get('persons')?.has(p.id)) continue;
       await dbService.run(
-        'INSERT OR REPLACE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [p.id, p.householdId, p.villageNo, p.citizenId, p.title, p.firstName, p.lastName, p.gender, p.birthDate, p.birthDatePrecision, p.bloodGroup, p.phone, p.occupation, p.residentStatus, p.careCategory, JSON.stringify(p.chronicDiseases), p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.createdAt, p.updatedAt]
       );
     }
@@ -87,8 +99,9 @@ class StorageService {
     // Screenings
     const screenings = JSON.parse(localStorage.getItem('smart_osm_screenings') || JSON.stringify(INITIAL_SCREENINGS));
     for (const s of screenings) {
+      if (deletedIds.get('screenings')?.has(s.id)) continue;
       await dbService.run(
-        'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [s.id, s.personId, s.householdId, s.villageNo, s.date, s.vhvMemberId, s.weightKg, s.heightCm, s.bmi, s.systolic, s.diastolic, s.pulse, s.bloodSugarDtx, s.waistCm, s.smoker ? 1 : 0, s.alcohol ? 1 : 0, s.notes, s.advice, s.needDoctorReferral ? 1 : 0, s.createdAt]
       );
     }
@@ -96,17 +109,18 @@ class StorageService {
     // Appointments
     const appointments = JSON.parse(localStorage.getItem('smart_osm_appointments') || JSON.stringify(INITIAL_APPOINTMENTS));
     for (const a of appointments) {
+      if (deletedIds.get('appointments')?.has(a.id)) continue;
       await dbService.run(
-        'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
       );
     }
 
     // Tombstones
-    const tombstones = JSON.parse(localStorage.getItem('smart_osm_tombstones') || '[]');
+    const tombstones = legacyTombstones;
     for (const t of tombstones) {
       await dbService.run(
-        'INSERT OR REPLACE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
         [t.id, t.collection, t.villageNo, t.deletedAt]
       );
     }
@@ -115,7 +129,7 @@ class StorageService {
     const logs = JSON.parse(localStorage.getItem('smart_osm_audit_logs') || '[]');
     for (const l of logs) {
       await dbService.run(
-        'INSERT OR REPLACE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
+        'INSERT OR IGNORE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
         [l.id, l.timestamp, l.action, l.collection, l.details, l.user]
       );
     }
