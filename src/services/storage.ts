@@ -599,14 +599,28 @@ class StorageService {
   }
 
   async resetToDefault() {
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original reset error. */ }
+      throw error;
+    }
     localStorage.removeItem(KEYS.MIGRATED);
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
     await this.migrateIfNeeded();
     window.location.reload();
   }
 
   async clearAllData() {
-    await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      await dbService.execute('DELETE FROM villages; DELETE FROM vhv_members; DELETE FROM households; DELETE FROM persons; DELETE FROM screenings; DELETE FROM appointments; DELETE FROM tombstones; DELETE FROM audit_logs; DELETE FROM sync_queue;');
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original clear error. */ }
+      throw error;
+    }
     for (const key of Object.values(KEYS)) {
       localStorage.removeItem(key);
     }
