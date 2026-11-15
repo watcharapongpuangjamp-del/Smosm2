@@ -378,6 +378,52 @@ class StorageService {
     await dbService.run('INSERT INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)', [id, new Date().toISOString(), action, collection, details, user]);
   }
 
+  /**
+   * Import validated Excel records as one atomic operation.
+   * Existing records are not overwritten by this append-only import path.
+   */
+  async importExcelBatch(households: Household[], persons: Person[]): Promise<void> {
+    if (!Array.isArray(households) || !Array.isArray(persons)) {
+      throw new Error('ข้อมูลนำเข้าไม่ถูกต้อง');
+    }
+
+    const householdIds = new Set(households.map((household) => household.id));
+    for (const person of persons) {
+      if (!person.id || !person.householdId || !person.firstName || !person.lastName) {
+        throw new Error('ข้อมูลประชากรไม่ครบถ้วน');
+      }
+      if (!householdIds.has(person.householdId)) {
+        const existing = await this.getHouseholdById(person.householdId);
+        if (!existing) throw new Error(`ไม่พบบ้านที่อ้างอิงสำหรับ ${person.firstName} ${person.lastName}`);
+      }
+    }
+
+    await dbService.execute('BEGIN TRANSACTION;');
+    try {
+      for (const household of households) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [household.id, household.houseNo, household.villageNo, household.villageName, household.subdistrict, household.district, household.province, household.latitude, household.longitude, household.headOfHouseholdName, household.vhvMemberId, household.sanitationRating, household.mosquitoLarvaFound ? 1 : 0, household.waterSource, household.wasteManagement, household.notes, household.createdAt, household.updatedAt]
+        );
+      }
+
+      for (const person of persons) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [person.id, person.householdId, person.villageNo, person.citizenId, person.title, person.firstName, person.lastName, person.gender, person.birthDate, person.birthDatePrecision, person.bloodGroup, person.phone, person.occupation, person.residentStatus, person.careCategory, JSON.stringify(person.chronicDiseases || []), person.weightKg, person.heightCm, person.bmi, person.systolic, person.diastolic, person.bloodSugarDtx, person.createdAt, person.updatedAt]
+        );
+      }
+
+      await this.log('create', 'import', `นำเข้าข้อมูล Excel ${persons.length} ราย และเพิ่มหลังคาเรือน ${households.length} หลัง`);
+      await dbService.execute('COMMIT;');
+    } catch (error) {
+      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original import error. */ }
+      throw error;
+    }
+
+    await dbService.saveToWebStore();
+  }
+
   async exportAllData() {
     return {
       version: '2.0.0',
