@@ -337,7 +337,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
                   if (['fair', 'พอใช้'].includes(value)) return 'fair';
                   if (['poor', 'ไม่ดี', 'แย่'].includes(value)) return 'poor';
                   return 'unknown';
-                })(),
+                })() as Household['sanitationRating'],
                 mosquitoLarvaFound: ['พบ', 'true', '1', 'yes'].includes(String(row['พบลูกน้ำยุงลาย'] ?? '').trim().toLowerCase()),
                 waterSource: String(row['แหล่งน้ำ'] ?? 'ยังไม่ระบุ'),
                 wasteManagement: String(row['การจัดการขยะ'] ?? 'ยังไม่ระบุ'),
