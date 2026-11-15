@@ -142,18 +142,22 @@ export const App: React.FC = () => {
   };
 
   const handleOpenAddHouseholdAtCoords = (lat: number, lng: number) => {
+    const targetVillageNo = selectedVillageNo === 0 ? (villages[0]?.no ?? 1) : selectedVillageNo;
+    const targetVillage = villages.find((village) => village.no === targetVillageNo);
+    const assignedVhv = vhvMembers.find((member) => member.villageNo === targetVillageNo && member.isActive);
+
     setHouseholdToEdit({
       id: '',
       houseNo: '',
-      villageNo: selectedVillageNo === 0 ? 1 : selectedVillageNo,
-      villageName: `หมู่ที่ ${selectedVillageNo === 0 ? 1 : selectedVillageNo}`,
-      subdistrict: 'ตำบลสุขภาพดี',
-      district: 'อำเภอเมือง',
-      province: 'เชียงใหม่',
+      villageNo: targetVillageNo,
+      villageName: targetVillage?.name ?? '',
+      subdistrict: targetVillage?.subdistrict ?? '',
+      district: targetVillage?.district ?? '',
+      province: targetVillage?.province ?? '',
       latitude: lat,
       longitude: lng,
       headOfHouseholdName: '',
-      vhvMemberId: vhvMembers[0]?.id || 'vhv-1',
+      vhvMemberId: assignedVhv?.id ?? '',
       sanitationRating: 'good',
       mosquitoLarvaFound: false,
       waterSource: 'ประปาหมู่บ้าน',
