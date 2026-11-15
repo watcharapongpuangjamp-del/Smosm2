@@ -91,7 +91,8 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
             <div>
               <span className="font-bold text-slate-900 text-sm">สถานะการทำงาน: เก็บข้อมูลในอุปกรณ์</span>
               <p className="text-xs text-slate-700 mt-1 leading-relaxed">
-                รุ่นนี้ยังไม่ได้กำหนดและตรวจสอบปลายทาง Cloud จึงไม่มีการซิงก์หรือส่งข้อมูลออกจากอุปกรณ์อัตโนมัติ
+                รุ่นนี้ยังไม่มีปลายทาง Cloud ที่ใช้งานจริง จึงไม่มีการซิงก์หรือส่งข้อมูลออกจากอุปกรณ์อัตโนมัติ
+                ฐานข้อมูล Android ใช้ SQLCipher และเก็บกุญแจผ่าน Secure Storage; รุ่น Web ยังไม่มีการเข้ารหัสฐานข้อมูล
                 ควรส่งออกไฟล์ JSON จากเมนูนำเข้า/ส่งออกเพื่อสำรองข้อมูลก่อนเปลี่ยนหรือล้างอุปกรณ์
               </p>
             </div>
