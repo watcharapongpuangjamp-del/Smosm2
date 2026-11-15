@@ -200,8 +200,9 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
       reader.onload = async (event) => {
         try {
           const data = new Uint8Array(event.target?.result as ArrayBuffer);
-          const workbook = XLSX.read(data, { type: 'array' });
-          const firstSheetName = workbook.SheetNames[0];
+          const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+          const preferredSheet = ['แบบฟอร์มนำเข้าประชากร', 'ทะเบียนประชากร'].find((name) => workbook.Sheets[name]);
+          const firstSheetName = preferredSheet || workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const rows: any[] = XLSX.utils.sheet_to_json(worksheet);
 
@@ -220,22 +221,41 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
           );
           let duplicateCount = 0;
           let invalidCount = 0;
+          let checksumWarningCount = 0;
           const now = new Date().toISOString();
 
-          const parseDate = (value: unknown): { date: string; precision?: string } | null => {
+          const parseDate = (value: unknown): { date: string; precision?: Person['birthDatePrecision'] } | null => {
+            if (value instanceof Date && !Number.isNaN(value.getTime())) {
+              const year = value.getFullYear() > 2400 ? value.getFullYear() - 543 : value.getFullYear();
+              return { date: `${String(year).padStart(4, '0')}-${String(value.getMonth() + 1).padStart(2, '0')}-${String(value.getDate()).padStart(2, '0')}` };
+            }
             if (typeof value === 'number') {
               const parsed = XLSX.SSF.parse_date_code(value);
               if (!parsed) return null;
+              const year = parsed.y > 2400 ? parsed.y - 543 : parsed.y;
               return {
-                date: `${String(parsed.y).padStart(4, '0')}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`,
+                date: `${String(year).padStart(4, '0')}-${String(parsed.m).padStart(2, '0')}-${String(parsed.d).padStart(2, '0')}`,
               };
             }
             const text = String(value ?? '').trim();
-            if (/^\\d{4}$/.test(text)) return { date: `${text}-01-01`, precision: 'year' };
-            if (/^\\d{4}-\\d{2}-\\d{2}$/.test(text)) return { date: text };
+            if (/^\\d{4}$/.test(text)) {
+              const rawYear = Number(text);
+              const year = rawYear > 2400 ? rawYear - 543 : rawYear;
+              return { date: `${String(year).padStart(4, '0')}-01-01`, precision: 'year' };
+            }
+            if (/^\\d{4}-\\d{2}-\\d{2}$/.test(text)) {
+              const [rawYear, month, day] = text.split('-').map(Number);
+              const year = rawYear > 2400 ? rawYear - 543 : rawYear;
+              const parsed = new Date(Date.UTC(year, month - 1, day));
+              if (parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month - 1 && parsed.getUTCDate() === day) {
+                return { date: `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}` };
+              }
+              return null;
+            }
             const dmy = text.match(/^(\\d{1,2})[\\/.-](\\d{1,2})[\\/.-](\\d{4})$/);
             if (dmy) {
-              const year = Number(dmy[3]);
+              const rawYear = Number(dmy[3]);
+              const year = rawYear > 2400 ? rawYear - 543 : rawYear;
               const month = Number(dmy[2]);
               const day = Number(dmy[1]);
               const date = new Date(Date.UTC(year, month - 1, day));
@@ -282,6 +302,11 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
               duplicateCount++;
               continue;
             }
+            if (citizenId) {
+              let checksumSum = 0;
+              for (let digit = 0; digit < 12; digit++) checksumSum += Number(citizenId[digit]) * (13 - digit);
+              if ((11 - (checksumSum % 11)) % 10 !== Number(citizenId[12])) checksumWarningCount++;
+            }
 
             let house = knownHouses.find((item) => item.houseNo === houseNo && item.villageNo === villageNo);
             if (!house) {
@@ -305,11 +330,22 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
                 longitude: hasCoordinates ? longitude! : 0,
                 headOfHouseholdName: `${firstName} ${lastName}`,
                 vhvMemberId: assignedVhv?.id ?? '',
-                sanitationRating: String(row['สุขาภิบาล'] ?? 'unknown') as Household['sanitationRating'],
+                sanitationRating: (() => {
+                  const value = String(row['สุขาภิบาล'] ?? '').trim().toLowerCase();
+                  if (['good', 'ดี'].includes(value)) return 'good';
+                  if (['fair', 'พอใช้'].includes(value)) return 'fair';
+                  if (['poor', 'ไม่ดี', 'แย่'].includes(value)) return 'poor';
+                  return 'unknown';
+                })(),
                 mosquitoLarvaFound: ['พบ', 'true', '1', 'yes'].includes(String(row['พบลูกน้ำยุงลาย'] ?? '').trim().toLowerCase()),
                 waterSource: String(row['แหล่งน้ำ'] ?? 'ยังไม่ระบุ'),
                 wasteManagement: String(row['การจัดการขยะ'] ?? 'ยังไม่ระบุ'),
-                notes: hasCoordinates ? 'นำเข้าจากไฟล์ Excel' : 'นำเข้าจากไฟล์ Excel; ยังไม่ได้ระบุพิกัดบ้าน',
+                notes: [
+                  'นำเข้าจากไฟล์ Excel',
+                  hasCoordinates ? '' : 'ยังไม่ได้ระบุพิกัดบ้าน',
+                  row['สุขาภิบาล'] ? '' : 'ยังไม่ได้ประเมินสุขาภิบาล',
+                  row['พบลูกน้ำยุงลาย'] !== undefined ? '' : 'ยังไม่ได้สำรวจลูกน้ำยุงลาย',
+                ].filter(Boolean).join('; '),
                 createdAt: now,
                 updatedAt: now,
               };
@@ -333,10 +369,16 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
               gender,
               birthDate: birth.date,
               birthDatePrecision: birth.precision,
-              bloodGroup: String(row['หมู่เลือด'] ?? ''),
+              bloodGroup: (() => {
+                const value = String(row['หมู่เลือด'] ?? '').trim().toUpperCase();
+                return (['A', 'B', 'AB', 'O', 'RH-'].includes(value) ? value : 'Unknown') as Person['bloodGroup'];
+              })(),
               phone: row['เบอร์โทร'] ? String(row['เบอร์โทร']) : undefined,
               occupation: row['อาชีพ'] ? String(row['อาชีพ']) : undefined,
-              residentStatus: String(row['สถานะการอยู่อาศัย'] ?? 'resident'),
+              residentStatus: (() => {
+                const value = String(row['สถานะการอยู่อาศัย'] ?? 'resident').trim();
+                return (['resident', 'moved_out', 'deceased', 'temporary'].includes(value) ? value : 'resident') as Person['residentStatus'];
+              })(),
               careCategory,
               chronicDiseases: row['โรคประจำตัว']
                 ? String(row['โรคประจำตัว']).split(',').map((item) => item.trim()).filter(Boolean)
@@ -362,7 +404,7 @@ export const DataExchangeModal: React.FC<DataExchangeModalProps> = ({
           await storage.importExcelBatch(newHouseholds, newPersons);
           setImportStatus({
             success: true,
-            message: `นำเข้าสำเร็จ ${newPersons.length} ราย เพิ่มหลังคาเรือน ${newHouseholds.length} หลัง; ข้ามข้อมูลซ้ำ ${duplicateCount} ราย และข้อมูลไม่ครบ/รูปแบบไม่ถูกต้อง ${invalidCount} ราย`,
+            message: `นำเข้าสำเร็จ ${newPersons.length} ราย เพิ่มหลังคาเรือน ${newHouseholds.length} หลัง; ข้ามข้อมูลซ้ำ ${duplicateCount} ราย; ข้อมูลไม่ครบ/รูปแบบไม่ถูกต้อง ${invalidCount} ราย; เลขบัตรที่ควรตรวจ checksum อีกครั้ง ${checksumWarningCount} ราย`,
           });
           onDataReload();
         } catch (err: any) {
