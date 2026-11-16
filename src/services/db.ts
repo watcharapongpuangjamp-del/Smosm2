@@ -289,21 +289,15 @@ class DatabaseService {
     if (!this.db || !this.manualTransactionActive) {
       throw new Error('ไม่มี SQLite Transaction ที่เปิดอยู่เพื่อ Commit');
     }
-    try {
-      await this.db.commitTransaction();
-    } finally {
-      this.manualTransactionActive = false;
-    }
+    await this.db.commitTransaction();
+    this.manualTransactionActive = false;
   }
 
   async rollbackTransaction(): Promise<void> {
     if (!this.db || !this.manualTransactionActive) return;
-    try {
-      const active = (await this.db.isTransactionActive()).result;
-      if (active) await this.db.rollbackTransaction();
-    } finally {
-      this.manualTransactionActive = false;
-    }
+    const active = (await this.db.isTransactionActive()).result;
+    if (active) await this.db.rollbackTransaction();
+    this.manualTransactionActive = false;
   }
 
   /**
