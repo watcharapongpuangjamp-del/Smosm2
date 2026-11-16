@@ -20,6 +20,7 @@ import { OfflineIndicator } from './components/OfflineIndicator';
 import { BottomNav } from './components/BottomNav';
 import { useSwipe } from './hooks/useSwipe';
 import { PWAUpdateBanner } from './components/PWAUpdateBanner';
+import { QrScannerModal } from './components/QrScannerModal';
 
 export const App: React.FC = () => {
   // Navigation & Filter state
@@ -83,6 +84,8 @@ export const App: React.FC = () => {
 
   const [isScreeningModalOpen, setIsScreeningModalOpen] = useState(false);
   const [personForScreening, setPersonForScreening] = useState<Person | null>(null);
+
+  const [isQrScannerOpen, setIsQrScannerOpen] = useState(false);
 
   const [isAppointmentsModalOpen, setIsAppointmentsModalOpen] = useState(false);
   const [personForAppointments, setPersonForAppointments] = useState<Person | null>(null);
@@ -274,6 +277,7 @@ export const App: React.FC = () => {
         onVillageChange={setSelectedVillageNo}
         onOpenSyncModal={() => setIsSyncModalOpen(true)}
         onOpenDataExchange={() => setIsDataExchangeOpen(true)}
+        onOpenQrScanner={() => setIsQrScannerOpen(true)}
         displayMode={displayMode}
         onDisplayModeChange={setDisplayMode}
       />
@@ -457,6 +461,17 @@ export const App: React.FC = () => {
         screenings={screenings}
         tombstones={tombstones}
         logs={auditLogs}
+      />
+
+      {/* QR Scanner Modal */}
+      <QrScannerModal
+        isOpen={isQrScannerOpen}
+        onClose={() => setIsQrScannerOpen(false)}
+        persons={persons}
+        households={households}
+        onPatientFound={(person) => {
+          handleOpenScreening(person);
+        }}
       />
 
       {/* PWA Service Worker Update Banner */}

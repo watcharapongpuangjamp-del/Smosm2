@@ -13,6 +13,7 @@ import {
   Tablet,
   Smartphone,
   Maximize2,
+  QrCode,
 } from 'lucide-react';
 import { Village } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -25,6 +26,7 @@ interface NavbarProps {
   onVillageChange: (no: number) => void;
   onOpenSyncModal: () => void;
   onOpenDataExchange: () => void;
+  onOpenQrScanner: () => void;
   displayMode: 'auto' | 'pc' | 'tablet' | 'mobile';
   onDisplayModeChange: (mode: 'auto' | 'pc' | 'tablet' | 'mobile') => void;
 }
@@ -37,6 +39,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   onVillageChange,
   onOpenSyncModal,
   onOpenDataExchange,
+  onOpenQrScanner,
   displayMode,
   onDisplayModeChange,
 }) => {
@@ -83,6 +86,16 @@ export const Navbar: React.FC<NavbarProps> = ({
                 ))}
               </select>
             </div>
+
+            {/* QR Scan Button */}
+            <button
+              onClick={onOpenQrScanner}
+              title="สแกน QR Code ประชาชน"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs sm:text-sm font-medium transition-colors shadow-sm"
+            >
+              <QrCode className="w-4 h-4" />
+              <span className="hidden sm:inline">สแกน QR</span>
+            </button>
 
             {/* Excel / Import / Export Button */}
             <button
