@@ -9,14 +9,6 @@ import {
   Tombstone,
   AuditLog,
 } from '../types';
-import {
-  INITIAL_VILLAGES,
-  INITIAL_VHV_MEMBERS,
-  INITIAL_HOUSEHOLDS,
-  INITIAL_PERSONS,
-  INITIAL_SCREENINGS,
-  INITIAL_APPOINTMENTS,
-} from '../data/mockData';
 import { dbService } from './db';
 
 const KEYS = {
@@ -58,7 +50,7 @@ class StorageService {
     await dbService.execute('BEGIN TRANSACTION;');
     try {
       // Villages
-    const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || JSON.stringify(INITIAL_VILLAGES));
+    const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || '[]');
     for (const v of villages) {
       await dbService.run(
         'INSERT OR IGNORE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
@@ -67,7 +59,7 @@ class StorageService {
     }
 
     // VHV Members
-    const vhv = JSON.parse(localStorage.getItem('smart_osm_vhv_members') || JSON.stringify(INITIAL_VHV_MEMBERS));
+    const vhv = JSON.parse(localStorage.getItem('smart_osm_vhv_members') || '[]');
     for (const m of vhv) {
       if (deletedIds.get('vhv_members')?.has(m.id)) continue;
       await dbService.run(
@@ -77,7 +69,7 @@ class StorageService {
     }
 
     // Households
-    const households = JSON.parse(localStorage.getItem('smart_osm_households') || JSON.stringify(INITIAL_HOUSEHOLDS));
+    const households = JSON.parse(localStorage.getItem('smart_osm_households') || '[]');
     for (const h of households) {
       if (deletedIds.get('households')?.has(h.id)) continue;
       await dbService.run(
@@ -87,7 +79,7 @@ class StorageService {
     }
 
     // Persons
-    const persons = JSON.parse(localStorage.getItem('smart_osm_persons') || JSON.stringify(INITIAL_PERSONS));
+    const persons = JSON.parse(localStorage.getItem('smart_osm_persons') || '[]');
     for (const p of persons) {
       if (deletedIds.get('persons')?.has(p.id)) continue;
       await dbService.run(
@@ -97,7 +89,7 @@ class StorageService {
     }
 
     // Screenings
-    const screenings = JSON.parse(localStorage.getItem('smart_osm_screenings') || JSON.stringify(INITIAL_SCREENINGS));
+    const screenings = JSON.parse(localStorage.getItem('smart_osm_screenings') || '[]');
     for (const s of screenings) {
       if (deletedIds.get('screenings')?.has(s.id)) continue;
       await dbService.run(
@@ -107,7 +99,7 @@ class StorageService {
     }
 
     // Appointments
-    const appointments = JSON.parse(localStorage.getItem('smart_osm_appointments') || JSON.stringify(INITIAL_APPOINTMENTS));
+    const appointments = JSON.parse(localStorage.getItem('smart_osm_appointments') || '[]');
     for (const a of appointments) {
       if (deletedIds.get('appointments')?.has(a.id)) continue;
       await dbService.run(
@@ -627,6 +619,7 @@ class StorageService {
     }
   }
 
+  // Reset now produces an empty dataset, never bundled demo population.
   async resetToDefault() {
     await dbService.execute('BEGIN TRANSACTION;');
     try {
@@ -639,7 +632,8 @@ class StorageService {
     for (const key of Object.values(KEYS)) {
       localStorage.removeItem(key);
     }
-    await this.migrateIfNeeded();
+    localStorage.setItem(KEYS.MIGRATED, 'true');
+    await dbService.saveToWebStore();
     window.location.reload();
   }
 
