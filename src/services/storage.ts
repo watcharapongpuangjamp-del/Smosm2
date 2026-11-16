@@ -47,7 +47,7 @@ class StorageService {
       deletedIds.get(tombstone.collection)!.add(tombstone.id);
     }
 
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       // Villages
     const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || '[]');
@@ -126,9 +126,9 @@ class StorageService {
       );
     }
 
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original migration error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original migration error. */ }
       throw error;
     }
     await dbService.saveToWebStore();
@@ -214,14 +214,14 @@ class StorageService {
       throw new Error(`ไม่สามารถลบบ้านเลขที่ ${h.houseNo} ได้ เนื่องจากยังมีสมาชิก ${members.length} ราย กรุณาย้ายสมาชิกไปบ้านอื่นก่อน`);
     }
 
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await dbService.run('DELETE FROM households WHERE id = ?', [id]);
       await this.addTombstone('households', h.villageNo, id);
       await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original delete error. */ }
       throw error;
     }
     await dbService.saveToWebStore();
@@ -277,14 +277,14 @@ class StorageService {
     const p = await this.getPersonById(id);
     if (!p) return;
 
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await dbService.run('DELETE FROM persons WHERE id = ?', [id]);
       await this.addTombstone('persons', p.villageNo, id);
       await this.log('delete', 'persons', `ลบข้อมูลประชากร ${p.firstName}`);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original delete error. */ }
       throw error;
     }
     await dbService.saveToWebStore();
@@ -378,14 +378,14 @@ class StorageService {
     if (!res.values?.length) return;
 
     const villageNo = Number(res.values[0].villageNo ?? 0);
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await dbService.run('DELETE FROM appointments WHERE id = ?', [id]);
       await this.addTombstone('appointments', villageNo, id);
       await this.log('delete', 'appointments', `ลบนัดหมาย ${res.values[0].title || id}`);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original delete error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original delete error. */ }
       throw error;
     }
     await dbService.saveToWebStore();
@@ -431,7 +431,7 @@ class StorageService {
       }
     }
 
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       for (const household of households) {
         await dbService.run(
@@ -448,9 +448,9 @@ class StorageService {
       }
 
       await this.log('create', 'import', `นำเข้าข้อมูล Excel ${persons.length} ราย และเพิ่มหลังคาเรือน ${households.length} หลัง`);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original import error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original import error. */ }
       throw error;
     }
 
@@ -488,7 +488,7 @@ class StorageService {
       }
     }
 
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await this.clearDataTables(false);
 
@@ -564,9 +564,9 @@ class StorageService {
       }
     }
 
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original import error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original import error. */ }
       throw error;
     }
     await dbService.saveToWebStore();
@@ -621,12 +621,12 @@ class StorageService {
 
   // Reset now produces an empty dataset, never bundled demo population.
   async resetToDefault() {
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await this.clearDataTables(true);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original reset error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original reset error. */ }
       throw error;
     }
     for (const key of Object.values(KEYS)) {
@@ -638,12 +638,12 @@ class StorageService {
   }
 
   async clearAllData() {
-    await dbService.execute('BEGIN TRANSACTION;');
+    await dbService.beginTransaction();
     try {
       await this.clearDataTables(true);
-      await dbService.execute('COMMIT;');
+      await dbService.commitTransaction();
     } catch (error) {
-      try { await dbService.execute('ROLLBACK;'); } catch { /* Preserve the original clear error. */ }
+      try { await dbService.rollbackTransaction(); } catch { /* Preserve the original clear error. */ }
       throw error;
     }
     for (const key of Object.values(KEYS)) {
