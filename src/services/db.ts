@@ -31,15 +31,21 @@ class DatabaseService {
 
         const databaseName = 'smart_osm_db';
 
+        // Capacitor's native plugin keeps a connection registry outside this service.
+        // Reuse a registered connection after retries/app re-entry instead of creating
+        // a second connection with the same name (which throws "already exists").
+        const getOrCreateConnection = async (encrypted: boolean, mode: string) => {
+          const consistency = (await this.sqlite.checkConnectionsConsistency()).result;
+          const connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+          if (consistency && connectionExists) {
+            return this.sqlite.retrieveConnection(databaseName, false);
+          }
+          return this.sqlite.createConnection(databaseName, encrypted, mode, 1, false);
+        };
+
         if (platform === 'web') {
           // SQLCipher is not supported by the Web/WASM implementation.
-          this.db = await this.sqlite.createConnection(
-            databaseName,
-            false,
-            'no-encryption',
-            1,
-            false
-          );
+          this.db = this.db ?? await getOrCreateConnection(false, 'no-encryption');
         } else {
           const encryptionConfigured = (await this.sqlite.isInConfigEncryption()).result;
           if (!encryptionConfigured) {
@@ -67,13 +73,7 @@ class DatabaseService {
           // "encryption" migrates an existing plaintext DB; "secret" creates or opens
           // an already-encrypted DB using the key stored by the native SQLite plugin.
           const encryptionMode = databaseExists && !databaseEncrypted ? 'encryption' : 'secret';
-          this.db = await this.sqlite.createConnection(
-            databaseName,
-            true,
-            encryptionMode,
-            1,
-            false
-          );
+          this.db = this.db ?? await getOrCreateConnection(true, encryptionMode);
         }
 
         await this.db.open();
