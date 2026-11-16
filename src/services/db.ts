@@ -6,6 +6,7 @@ class DatabaseService {
   private db: SQLiteDBConnection | null = null;
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
+  private manualTransactionActive = false;
 
   /**
    * Initializes the database connection.
@@ -261,7 +262,7 @@ class DatabaseService {
    */
   async run(statement: string, values?: any[]) {
     if (!this.db) await this.init();
-    return await this.db!.run(statement, values);
+    return await this.db!.run(statement, values, !this.manualTransactionActive);
   }
 
   /**
@@ -269,7 +270,40 @@ class DatabaseService {
    */
   async execute(statement: string) {
     if (!this.db) await this.init();
-    return await this.db!.execute(statement);
+    return await this.db!.execute(statement, !this.manualTransactionActive);
+  }
+
+  /** Begin an explicit transaction; statements inside it must not auto-commit. */
+  async beginTransaction(): Promise<void> {
+    if (!this.db) await this.init();
+    if (this.manualTransactionActive) {
+      throw new Error('มี Transaction ทำงานอยู่แล้ว');
+    }
+    await this.db!.beginTransaction();
+    const active = (await this.db!.isTransactionActive()).result;
+    if (!active) throw new Error('ไม่สามารถเริ่ม SQLite Transaction ได้');
+    this.manualTransactionActive = true;
+  }
+
+  async commitTransaction(): Promise<void> {
+    if (!this.db || !this.manualTransactionActive) {
+      throw new Error('ไม่มี SQLite Transaction ที่เปิดอยู่เพื่อ Commit');
+    }
+    try {
+      await this.db.commitTransaction();
+    } finally {
+      this.manualTransactionActive = false;
+    }
+  }
+
+  async rollbackTransaction(): Promise<void> {
+    if (!this.db || !this.manualTransactionActive) return;
+    try {
+      const active = (await this.db.isTransactionActive()).result;
+      if (active) await this.db.rollbackTransaction();
+    } finally {
+      this.manualTransactionActive = false;
+    }
   }
 
   /**
