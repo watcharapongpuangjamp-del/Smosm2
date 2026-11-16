@@ -36,10 +36,23 @@ class DatabaseService {
         // a second connection with the same name (which throws "already exists").
         const getOrCreateConnection = async (encrypted: boolean, mode: string) => {
           const consistency = (await this.sqlite.checkConnectionsConsistency()).result;
-          const connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+          let connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+
           if (consistency && connectionExists) {
             return this.sqlite.retrieveConnection(databaseName, false);
           }
+
+          // A stale JS/native registry entry can survive a failed initialization.
+          // Remove only this database connection (never the database file/data) before
+          // creating a replacement, otherwise createConnection throws "already exists".
+          if (connectionExists) {
+            await this.sqlite.closeConnection(databaseName, false);
+            connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+            if (connectionExists) {
+              throw new Error(`พบ Connection ${databaseName} ค้างอยู่และไม่สามารถปิดได้ จึงหยุดเพื่อป้องกันการแตะต้องข้อมูลเดิม`);
+            }
+          }
+
           return this.sqlite.createConnection(databaseName, encrypted, mode, 1, false);
         };
 
