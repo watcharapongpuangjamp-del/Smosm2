@@ -14,6 +14,8 @@ import {
   Smartphone,
   Maximize2,
   QrCode,
+  Sun,
+  Moon,
 } from 'lucide-react';
 import { Village } from '../types';
 import { PWAInstallButton } from './PWAInstallButton';
@@ -29,6 +31,8 @@ interface NavbarProps {
   onOpenQrScanner: () => void;
   displayMode: 'auto' | 'pc' | 'tablet' | 'mobile';
   onDisplayModeChange: (mode: 'auto' | 'pc' | 'tablet' | 'mobile') => void;
+  darkMode: boolean;
+  onToggleDarkMode: () => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -42,6 +46,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenQrScanner,
   displayMode,
   onDisplayModeChange,
+  darkMode,
+  onToggleDarkMode,
 }) => {
   return (
     <header className="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
@@ -120,6 +126,15 @@ export const Navbar: React.FC<NavbarProps> = ({
 
             {/* PWA Install Button */}
             <PWAInstallButton />
+
+            {/* Theme Toggle Button */}
+            <button
+              onClick={onToggleDarkMode}
+              title={darkMode ? 'เปลี่ยนเป็นโหมดสว่าง (Light Mode)' : 'เปลี่ยนเป็นโหมดมืด (Dark Mode)'}
+              className="p-2 rounded-lg bg-emerald-800 hover:bg-emerald-900 text-emerald-200 hover:text-white transition-colors border border-emerald-600/40"
+            >
+              {darkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-emerald-200" />}
+            </button>
 
             {/* Display Mode Selector */}
             <div className="flex items-center bg-emerald-800/80 rounded-lg px-2.5 py-1.5 text-xs border border-emerald-600/50">

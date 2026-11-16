@@ -27,6 +27,18 @@ export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [selectedVillageNo, setSelectedVillageNo] = useState<number>(0);
   const [displayMode, setDisplayMode] = useState<'auto' | 'pc' | 'tablet' | 'mobile'>('auto');
+  const [darkMode, setDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('smart_osm_dark_mode') === 'true';
+  });
+
+  useEffect(() => {
+    localStorage.setItem('smart_osm_dark_mode', String(darkMode));
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [darkMode]);
 
   const getContainerClass = () => {
     if (displayMode === 'mobile') {
@@ -280,6 +292,8 @@ export const App: React.FC = () => {
         onOpenQrScanner={() => setIsQrScannerOpen(true)}
         displayMode={displayMode}
         onDisplayModeChange={setDisplayMode}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode(!darkMode)}
       />
 
       {/* Main Container */}

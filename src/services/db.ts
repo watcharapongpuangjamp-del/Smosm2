@@ -220,6 +220,18 @@ class DatabaseService {
     return await this.db!.execute(statement);
   }
 
+  async beginTransaction(): Promise<void> {
+    await this.execute('BEGIN TRANSACTION;');
+  }
+
+  async commitTransaction(): Promise<void> {
+    await this.execute('COMMIT;');
+  }
+
+  async rollbackTransaction(): Promise<void> {
+    await this.execute('ROLLBACK;');
+  }
+
   /**
    * Persists the database to IndexedDB (Web environment only).
    */

@@ -46,82 +46,96 @@ class StorageService {
     if (isMigrated) return;
 
     console.log('Migrating data from localStorage to SQLite...');
+    await dbService.beginTransaction();
 
-    // Villages
-    const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || JSON.stringify(INITIAL_VILLAGES));
-    for (const v of villages) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [v.id, v.no, v.name, v.subdistrict, v.district, v.province, v.centerLat, v.centerLng]
-      );
+    try {
+      const isDev = import.meta.env.DEV;
+
+      // Villages
+      const villages = JSON.parse(localStorage.getItem('smart_osm_villages') || JSON.stringify(INITIAL_VILLAGES));
+      for (const v of villages) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+          [v.id, v.no, v.name, v.subdistrict, v.district, v.province, v.centerLat, v.centerLng]
+        );
+      }
+
+      // VHV Members
+      const vhv = JSON.parse(localStorage.getItem('smart_osm_vhv_members') || JSON.stringify(INITIAL_VHV_MEMBERS));
+      for (const m of vhv) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [m.id, m.name, m.citizenId, m.phone, m.villageNo, m.zoneName, JSON.stringify(m.assignedHouseIds), m.isActive ? 1 : 0, m.registeredDate]
+        );
+      }
+
+      // Households (mock data only in DEV build)
+      const defaultHouseholds = isDev ? INITIAL_HOUSEHOLDS : [];
+      const households = JSON.parse(localStorage.getItem('smart_osm_households') || JSON.stringify(defaultHouseholds));
+      for (const h of households) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [h.id, h.houseNo, h.villageNo, h.villageName, h.subdistrict, h.district, h.province, h.latitude, h.longitude, h.headOfHouseholdName, h.vhvMemberId, h.sanitationRating, h.mosquitoLarvaFound ? 1 : 0, h.waterSource, h.wasteManagement, h.notes, h.createdAt, h.updatedAt]
+        );
+      }
+
+      // Persons
+      const defaultPersons = isDev ? INITIAL_PERSONS : [];
+      const persons = JSON.parse(localStorage.getItem('smart_osm_persons') || JSON.stringify(defaultPersons));
+      for (const p of persons) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [p.id, p.householdId, p.villageNo, p.citizenId, p.title, p.firstName, p.lastName, p.gender, p.birthDate, p.birthDatePrecision, p.bloodGroup, p.phone, p.occupation, p.residentStatus, p.careCategory, JSON.stringify(p.chronicDiseases), p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.createdAt, p.updatedAt]
+        );
+      }
+
+      // Screenings
+      const defaultScreenings = isDev ? INITIAL_SCREENINGS : [];
+      const screenings = JSON.parse(localStorage.getItem('smart_osm_screenings') || JSON.stringify(defaultScreenings));
+      for (const s of screenings) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [s.id, s.personId, s.householdId, s.villageNo, s.date, s.vhvMemberId, s.weightKg, s.heightCm, s.bmi, s.systolic, s.diastolic, s.pulse, s.bloodSugarDtx, s.waistCm, s.smoker ? 1 : 0, s.alcohol ? 1 : 0, s.notes, s.advice, s.needDoctorReferral ? 1 : 0, s.createdAt]
+        );
+      }
+
+      // Appointments
+      const defaultAppointments = isDev ? INITIAL_APPOINTMENTS : [];
+      const appointments = JSON.parse(localStorage.getItem('smart_osm_appointments') || JSON.stringify(defaultAppointments));
+      for (const a of appointments) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
+        );
+      }
+
+      // Tombstones
+      const tombstones = JSON.parse(localStorage.getItem('smart_osm_tombstones') || '[]');
+      for (const t of tombstones) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
+          [t.id, t.collection, t.villageNo, t.deletedAt]
+        );
+      }
+
+      // Audit Logs
+      const logs = JSON.parse(localStorage.getItem('smart_osm_audit_logs') || '[]');
+      for (const l of logs) {
+        await dbService.run(
+          'INSERT OR IGNORE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
+          [l.id, l.timestamp, l.action, l.collection, l.details, l.user]
+        );
+      }
+
+      await dbService.commitTransaction();
+      localStorage.setItem(KEYS.MIGRATED, 'true');
+      await dbService.saveToWebStore();
+      console.log('Migration completed successfully.');
+    } catch (err) {
+      await dbService.rollbackTransaction();
+      console.error('Migration failed, rolled back:', err);
+      throw err;
     }
-
-    // VHV Members
-    const vhv = JSON.parse(localStorage.getItem('smart_osm_vhv_members') || JSON.stringify(INITIAL_VHV_MEMBERS));
-    for (const m of vhv) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [m.id, m.name, m.citizenId, m.phone, m.villageNo, m.zoneName, JSON.stringify(m.assignedHouseIds), m.isActive ? 1 : 0, m.registeredDate]
-      );
-    }
-
-    // Households
-    const households = JSON.parse(localStorage.getItem('smart_osm_households') || JSON.stringify(INITIAL_HOUSEHOLDS));
-    for (const h of households) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [h.id, h.houseNo, h.villageNo, h.villageName, h.subdistrict, h.district, h.province, h.latitude, h.longitude, h.headOfHouseholdName, h.vhvMemberId, h.sanitationRating, h.mosquitoLarvaFound ? 1 : 0, h.waterSource, h.wasteManagement, h.notes, h.createdAt, h.updatedAt]
-      );
-    }
-
-    // Persons
-    const persons = JSON.parse(localStorage.getItem('smart_osm_persons') || JSON.stringify(INITIAL_PERSONS));
-    for (const p of persons) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [p.id, p.householdId, p.villageNo, p.citizenId, p.title, p.firstName, p.lastName, p.gender, p.birthDate, p.birthDatePrecision, p.bloodGroup, p.phone, p.occupation, p.residentStatus, p.careCategory, JSON.stringify(p.chronicDiseases), p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.createdAt, p.updatedAt]
-      );
-    }
-
-    // Screenings
-    const screenings = JSON.parse(localStorage.getItem('smart_osm_screenings') || JSON.stringify(INITIAL_SCREENINGS));
-    for (const s of screenings) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [s.id, s.personId, s.householdId, s.villageNo, s.date, s.vhvMemberId, s.weightKg, s.heightCm, s.bmi, s.systolic, s.diastolic, s.pulse, s.bloodSugarDtx, s.waistCm, s.smoker ? 1 : 0, s.alcohol ? 1 : 0, s.notes, s.advice, s.needDoctorReferral ? 1 : 0, s.createdAt]
-      );
-    }
-
-    // Appointments
-    const appointments = JSON.parse(localStorage.getItem('smart_osm_appointments') || JSON.stringify(INITIAL_APPOINTMENTS));
-    for (const a of appointments) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
-      );
-    }
-
-    // Tombstones
-    const tombstones = JSON.parse(localStorage.getItem('smart_osm_tombstones') || '[]');
-    for (const t of tombstones) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
-        [t.id, t.collection, t.villageNo, t.deletedAt]
-      );
-    }
-
-    // Audit Logs
-    const logs = JSON.parse(localStorage.getItem('smart_osm_audit_logs') || '[]');
-    for (const l of logs) {
-      await dbService.run(
-        'INSERT OR REPLACE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
-        [l.id, l.timestamp, l.action, l.collection, l.details, l.user]
-      );
-    }
-
-    localStorage.setItem(KEYS.MIGRATED, 'true');
-    await dbService.saveToWebStore();
-    console.log('Migration completed.');
   }
 
   // --- Villages ---
@@ -199,11 +213,39 @@ class StorageService {
     const h = await this.getHouseholdById(id);
     if (!h) return;
 
-    await dbService.run('DELETE FROM households WHERE id = ?', [id]);
-    await this.addTombstone('households', h.villageNo, id);
-    await this.queueSync('delete', 'households', { id });
-    await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo}`);
-    await dbService.saveToWebStore();
+    await dbService.beginTransaction();
+    try {
+      const persons = await this.getPersonsByHousehold(id);
+      for (const p of persons) {
+        await dbService.run('DELETE FROM persons WHERE id = ?', [p.id]);
+        await dbService.run('DELETE FROM screenings WHERE personId = ?', [p.id]);
+        await dbService.run('DELETE FROM appointments WHERE personId = ?', [p.id]);
+        await this.addTombstone('persons', p.villageNo, p.id);
+        await this.queueSync('delete', 'persons', { id: p.id });
+      }
+
+      await dbService.run('DELETE FROM households WHERE id = ?', [id]);
+      await this.addTombstone('households', h.villageNo, id);
+      await this.queueSync('delete', 'households', { id });
+
+      const vhvMembers = await this.getVhvMembers();
+      for (const m of vhvMembers) {
+        if (m.assignedHouseIds.includes(id)) {
+          const updatedHouses = m.assignedHouseIds.filter(hid => hid !== id);
+          await dbService.run(
+            'UPDATE vhv_members SET assignedHouseIds = ? WHERE id = ?',
+            [JSON.stringify(updatedHouses), m.id]
+          );
+        }
+      }
+
+      await this.log('delete', 'households', `ลบบ้านเลขที่ ${h.houseNo} พร้อมประชากรที่เกี่ยวข้อง`);
+      await dbService.commitTransaction();
+      await dbService.saveToWebStore();
+    } catch (err) {
+      await dbService.rollbackTransaction();
+      throw err;
+    }
   }
 
   // --- Persons ---
@@ -294,26 +336,37 @@ class StorageService {
   }
 
   async saveScreening(screening: HealthScreening): Promise<void> {
-    await dbService.run(
-      'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [screening.id, screening.personId, screening.householdId, screening.villageNo, screening.date, screening.vhvMemberId, screening.weightKg, screening.heightCm, screening.bmi, screening.systolic, screening.diastolic, screening.pulse, screening.bloodSugarDtx, screening.waistCm, screening.smoker ? 1 : 0, screening.alcohol ? 1 : 0, screening.notes, screening.advice, screening.needDoctorReferral ? 1 : 0, screening.createdAt]
-    );
+    await dbService.beginTransaction();
+    try {
+      await dbService.run(
+        'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [screening.id, screening.personId, screening.householdId, screening.villageNo, screening.date, screening.vhvMemberId, screening.weightKg, screening.heightCm, screening.bmi, screening.systolic, screening.diastolic, screening.pulse, screening.bloodSugarDtx, screening.waistCm, screening.smoker ? 1 : 0, screening.alcohol ? 1 : 0, screening.notes, screening.advice, screening.needDoctorReferral ? 1 : 0, screening.createdAt]
+      );
 
-    // Update person vitals
-    const p = await this.getPersonById(screening.personId);
-    if (p) {
-      p.weightKg = screening.weightKg;
-      p.heightCm = screening.heightCm;
-      p.bmi = screening.bmi;
-      p.systolic = screening.systolic;
-      p.diastolic = screening.diastolic;
-      p.bloodSugarDtx = screening.bloodSugarDtx;
-      await this.savePerson(p);
+      // Update person vitals atomically
+      const p = await this.getPersonById(screening.personId);
+      if (p) {
+        p.weightKg = screening.weightKg;
+        p.heightCm = screening.heightCm;
+        p.bmi = screening.bmi;
+        p.systolic = screening.systolic;
+        p.diastolic = screening.diastolic;
+        p.bloodSugarDtx = screening.bloodSugarDtx;
+        p.updatedAt = new Date().toISOString();
+        await dbService.run(
+          'UPDATE persons SET weightKg = ?, heightCm = ?, bmi = ?, systolic = ?, diastolic = ?, bloodSugarDtx = ?, updatedAt = ? WHERE id = ?',
+          [p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.updatedAt, p.id]
+        );
+      }
+
+      await this.queueSync('save', 'screenings', screening);
+      await this.log('create', 'screenings', `คัดกรองสุขภาพ ${screening.date}`);
+      await dbService.commitTransaction();
+      await dbService.saveToWebStore();
+    } catch (err) {
+      await dbService.rollbackTransaction();
+      throw err;
     }
-
-    await this.queueSync('save', 'screenings', screening);
-    await this.log('create', 'screenings', `คัดกรองสุขภาพ ${screening.date}`);
-    await dbService.saveToWebStore();
   }
 
   // --- Appointments ---
@@ -398,83 +451,97 @@ class StorageService {
   }
 
   async importAllData(payload: any) {
-    await this.clearAllData();
-
-    if (payload.villages) {
-      for (const v of payload.villages) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-          [v.id, v.no, v.name, v.subdistrict, v.district, v.province, v.centerLat, v.centerLng]
-        );
-      }
+    if (!payload || typeof payload !== 'object' || !payload.version) {
+      throw new Error('รูปแบบไฟล์สำรองข้อมูลไม่ถูกต้อง (Invalid backup file structure)');
     }
 
-    if (payload.vhvMembers) {
-      for (const m of payload.vhvMembers) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [m.id, m.name, m.citizenId, m.phone, m.villageNo, m.zoneName, JSON.stringify(m.assignedHouseIds), m.isActive ? 1 : 0, m.registeredDate]
-        );
-      }
-    }
+    const backup = await this.exportAllData();
+    await dbService.beginTransaction();
 
-    if (payload.households) {
-      for (const h of payload.households) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [h.id, h.houseNo, h.villageNo, h.villageName, h.subdistrict, h.district, h.province, h.latitude, h.longitude, h.headOfHouseholdName, h.vhvMemberId, h.sanitationRating, h.mosquitoLarvaFound ? 1 : 0, h.waterSource, h.wasteManagement, h.notes, h.createdAt, h.updatedAt]
-        );
-      }
-    }
+    try {
+      await this.clearAllData();
 
-    if (payload.persons) {
-      for (const p of payload.persons) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [p.id, p.householdId, p.villageNo, p.citizenId, p.title, p.firstName, p.lastName, p.gender, p.birthDate, p.birthDatePrecision, p.bloodGroup, p.phone, p.occupation, p.residentStatus, p.careCategory, JSON.stringify(p.chronicDiseases), p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.createdAt, p.updatedAt]
-        );
+      if (payload.villages && Array.isArray(payload.villages)) {
+        for (const v of payload.villages) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO villages (id, no, name, subdistrict, district, province, centerLat, centerLng) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+            [v.id, v.no, v.name, v.subdistrict, v.district, v.province, v.centerLat, v.centerLng]
+          );
+        }
       }
-    }
 
-    if (payload.screenings) {
-      for (const s of payload.screenings) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [s.id, s.personId, s.householdId, s.villageNo, s.date, s.vhvMemberId, s.weightKg, s.heightCm, s.bmi, s.systolic, s.diastolic, s.pulse, s.bloodSugarDtx, s.waistCm, s.smoker ? 1 : 0, s.alcohol ? 1 : 0, s.notes, s.advice, s.needDoctorReferral ? 1 : 0, s.createdAt]
-        );
+      if (payload.vhvMembers && Array.isArray(payload.vhvMembers)) {
+        for (const m of payload.vhvMembers) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO vhv_members (id, name, citizenId, phone, villageNo, zoneName, assignedHouseIds, isActive, registeredDate) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [m.id, m.name, m.citizenId, m.phone, m.villageNo, m.zoneName, JSON.stringify(m.assignedHouseIds || []), m.isActive ? 1 : 0, m.registeredDate]
+          );
+        }
       }
-    }
 
-    if (payload.appointments) {
-      for (const a of payload.appointments) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-          [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
-        );
+      if (payload.households && Array.isArray(payload.households)) {
+        for (const h of payload.households) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO households (id, houseNo, villageNo, villageName, subdistrict, district, province, latitude, longitude, headOfHouseholdName, vhvMemberId, sanitationRating, mosquitoLarvaFound, waterSource, wasteManagement, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [h.id, h.houseNo, h.villageNo, h.villageName, h.subdistrict, h.district, h.province, h.latitude, h.longitude, h.headOfHouseholdName, h.vhvMemberId, h.sanitationRating, h.mosquitoLarvaFound ? 1 : 0, h.waterSource, h.wasteManagement, h.notes, h.createdAt, h.updatedAt]
+          );
+        }
       }
-    }
 
-    if (payload.tombstones) {
-      for (const t of payload.tombstones) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
-          [t.id, t.collection, t.villageNo, t.deletedAt]
-        );
+      if (payload.persons && Array.isArray(payload.persons)) {
+        for (const p of payload.persons) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO persons (id, householdId, villageNo, citizenId, title, firstName, lastName, gender, birthDate, birthDatePrecision, bloodGroup, phone, occupation, residentStatus, careCategory, chronicDiseases, weightKg, heightCm, bmi, systolic, diastolic, bloodSugarDtx, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [p.id, p.householdId, p.villageNo, p.citizenId, p.title, p.firstName, p.lastName, p.gender, p.birthDate, p.birthDatePrecision, p.bloodGroup, p.phone, p.occupation, p.residentStatus, p.careCategory, JSON.stringify(p.chronicDiseases || []), p.weightKg, p.heightCm, p.bmi, p.systolic, p.diastolic, p.bloodSugarDtx, p.createdAt, p.updatedAt]
+          );
+        }
       }
-    }
 
-    if (payload.logs) {
-      for (const l of payload.logs) {
-        await dbService.run(
-          'INSERT OR REPLACE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
-          [l.id, l.timestamp, l.action, l.collection, l.details, l.user]
-        );
+      if (payload.screenings && Array.isArray(payload.screenings)) {
+        for (const s of payload.screenings) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO screenings (id, personId, householdId, villageNo, date, vhvMemberId, weightKg, heightCm, bmi, systolic, diastolic, pulse, bloodSugarDtx, waistCm, smoker, alcohol, notes, advice, needDoctorReferral, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [s.id, s.personId, s.householdId, s.villageNo, s.date, s.vhvMemberId, s.weightKg, s.heightCm, s.bmi, s.systolic, s.diastolic, s.pulse, s.bloodSugarDtx, s.waistCm, s.smoker ? 1 : 0, s.alcohol ? 1 : 0, s.notes, s.advice, s.needDoctorReferral ? 1 : 0, s.createdAt]
+          );
+        }
       }
-    }
 
-    localStorage.setItem(KEYS.MIGRATED, 'true'); // Prevent re-migration
-    await dbService.saveToWebStore();
-    window.location.reload();
+      if (payload.appointments && Array.isArray(payload.appointments)) {
+        for (const a of payload.appointments) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO appointments (id, personId, householdId, villageNo, vhvMemberId, title, type, date, time, location, status, notes, createdAt, updatedAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [a.id, a.personId, a.householdId, a.villageNo, a.vhvMemberId, a.title, a.type, a.date, a.time, a.location, a.status, a.notes, a.createdAt, a.updatedAt]
+          );
+        }
+      }
+
+      if (payload.tombstones && Array.isArray(payload.tombstones)) {
+        for (const t of payload.tombstones) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO tombstones (id, collection, villageNo, deletedAt) VALUES (?, ?, ?, ?)',
+            [t.id, t.collection, t.villageNo, t.deletedAt]
+          );
+        }
+      }
+
+      if (payload.logs && Array.isArray(payload.logs)) {
+        for (const l of payload.logs) {
+          await dbService.run(
+            'INSERT OR REPLACE INTO audit_logs (id, timestamp, action, collection, details, user) VALUES (?, ?, ?, ?, ?, ?)',
+            [l.id, l.timestamp, l.action, l.collection, l.details, l.user]
+          );
+        }
+      }
+
+      await dbService.commitTransaction();
+      localStorage.setItem(KEYS.MIGRATED, 'true');
+      await dbService.saveToWebStore();
+      window.location.reload();
+    } catch (err) {
+      await dbService.rollbackTransaction();
+      console.error('Import failed, restoring backup:', err);
+      throw err;
+    }
   }
 
   async queueSync(action: string, collection: string, payload: any) {
@@ -498,20 +565,26 @@ class StorageService {
   }
 
   async processBackgroundSync(): Promise<{ successCount: number; conflictCount: number }> {
+    if (!navigator.onLine) {
+      return { successCount: 0, conflictCount: 0 };
+    }
+
     const queue = await this.getSyncQueue();
     if (queue.length === 0) return { successCount: 0, conflictCount: 0 };
 
     let successCount = 0;
     let conflictCount = 0;
 
-    for (const item of queue) {
-      // Simulate background cloud sync
-      if (Math.random() < 0.03) {
-        conflictCount++;
-      } else {
+    await dbService.beginTransaction();
+    try {
+      for (const item of queue) {
         successCount++;
         await dbService.run('DELETE FROM sync_queue WHERE id = ?', [item.id]);
       }
+      await dbService.commitTransaction();
+    } catch (err) {
+      await dbService.rollbackTransaction();
+      throw err;
     }
 
     if (successCount > 0) {
