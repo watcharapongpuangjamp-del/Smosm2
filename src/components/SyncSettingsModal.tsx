@@ -158,26 +158,12 @@ export const SyncSettingsModal: React.FC<SyncSettingsModalProps> = ({
 
           <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-slate-700 block">คืนค่าข้อมูลตั้งต้นระบบ</span>
-              <span className="text-[11px] text-slate-500">ล้างข้อมูลและโหลดชุดข้อมูลตัวอย่างสาธิตใหม่อีกครั้ง</span>
-            </div>
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-semibold transition-colors"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              <span>รีเซ็ตข้อมูลตัวอย่าง</span>
-            </button>
-          </div>
-
-          <div className="pt-4 border-t border-slate-200 flex items-center justify-between">
-            <div>
-              <span className="text-xs font-bold text-rose-700 block">ล้างข้อมูลทั้งหมด</span>
-              <span className="text-[11px] text-slate-500">ล้างข้อมูลทั้งหมดในเครื่องออกทันที โดยไม่โหลดค่าเริ่มต้น</span>
+              <span className="text-xs font-bold text-rose-700 block">ลบข้อมูลทั้งหมด</span>
+              <span className="text-[11px] text-slate-500">ลบข้อมูลทุกตารางและข้อมูลเก่าของแอปในเครื่อง โดยไม่สร้างข้อมูลตัวอย่างกลับมา</span>
             </div>
             <button
               onClick={() => {
-                if (confirm('ต้องการล้างข้อมูลทั้งหมดในเครื่องทันทีหรือไม่? (ไม่สามารถกู้คืนได้)')) {
+                if (confirm('ยืนยันลบข้อมูล Smart OSM ทั้งหมดในอุปกรณ์นี้หรือไม่? รวมประชากร ครัวเรือน อสม. ประวัติสุขภาพ นัดหมาย บันทึก และคิวซิงก์ การลบนี้ไม่สามารถกู้คืนได้')) {
                   onClearData();
                   onClose();
                 }
