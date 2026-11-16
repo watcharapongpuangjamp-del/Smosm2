@@ -62,6 +62,7 @@ export const App: React.FC = () => {
 
   // Data state
   const [isInitializing, setIsInitializing] = useState(true);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
   const [villages, setVillages] = useState<Village[]>([]);
   const [vhvMembers, setVhvMembers] = useState<VhvMember[]>([]);
   const [households, setHouseholds] = useState<Household[]>([]);
@@ -119,31 +120,25 @@ export const App: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let active = true;
+
     const init = async () => {
-      await storage.init();
-      await loadData();
-      setIsInitializing(false);
-
-      // Process background sync if online
-      if (navigator.onLine) {
-        const res = await storage.processBackgroundSync();
-        if (res.successCount > 0) {
-          await loadData();
-        }
-      }
-    };
-    init();
-
-    const handleOnline = async () => {
-      const res = await storage.processBackgroundSync();
-      if (res.successCount > 0) {
+      try {
+        await storage.init();
         await loadData();
+      } catch (error) {
+        console.error('Smart OSM initialization failed:', error);
+        if (active) {
+          setInitializationError(error instanceof Error ? error.message : 'ไม่สามารถเริ่มต้นฐานข้อมูลได้');
+        }
+      } finally {
+        if (active) setIsInitializing(false);
       }
     };
 
-    window.addEventListener('online', handleOnline);
+    void init();
     return () => {
-      window.removeEventListener('online', handleOnline);
+      active = false;
     };
   }, [loadData]);
 
@@ -154,18 +149,22 @@ export const App: React.FC = () => {
   };
 
   const handleOpenAddHouseholdAtCoords = (lat: number, lng: number) => {
+    const targetVillageNo = selectedVillageNo === 0 ? (villages[0]?.no ?? 1) : selectedVillageNo;
+    const targetVillage = villages.find((village) => village.no === targetVillageNo);
+    const assignedVhv = vhvMembers.find((member) => member.villageNo === targetVillageNo && member.isActive);
+
     setHouseholdToEdit({
       id: '',
       houseNo: '',
-      villageNo: selectedVillageNo === 0 ? 1 : selectedVillageNo,
-      villageName: `หมู่ที่ ${selectedVillageNo === 0 ? 1 : selectedVillageNo}`,
-      subdistrict: 'ตำบลสุขภาพดี',
-      district: 'อำเภอเมือง',
-      province: 'เชียงใหม่',
+      villageNo: targetVillageNo,
+      villageName: targetVillage?.name ?? '',
+      subdistrict: targetVillage?.subdistrict ?? '',
+      district: targetVillage?.district ?? '',
+      province: targetVillage?.province ?? '',
       latitude: lat,
       longitude: lng,
       headOfHouseholdName: '',
-      vhvMemberId: vhvMembers[0]?.id || 'vhv-1',
+      vhvMemberId: assignedVhv?.id ?? '',
       sanitationRating: 'good',
       mosquitoLarvaFound: false,
       waterSource: 'ประปาหมู่บ้าน',
@@ -187,8 +186,12 @@ export const App: React.FC = () => {
   };
 
   const handleDeleteHousehold = async (id: string) => {
-    await storage.deleteHousehold(id);
-    await loadData();
+    try {
+      await storage.deleteHousehold(id);
+      await loadData();
+    } catch (error) {
+      alert(error instanceof Error ? error.message : 'ไม่สามารถลบหลังคาเรือนได้');
+    }
   };
 
   const handleViewHouseholdDetail = (household: Household) => {
@@ -258,6 +261,25 @@ export const App: React.FC = () => {
         <div className="text-center space-y-4">
           <div className="w-16 h-16 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
           <p className="text-slate-600 font-medium animate-pulse">กำลังเริ่มต้นฐานข้อมูล SQLite...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (initializationError) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6">
+        <div className="w-full max-w-lg rounded-2xl border border-rose-200 bg-white p-6 text-center shadow-sm">
+          <h1 className="text-lg font-bold text-slate-900">เริ่มต้นฐานข้อมูลไม่สำเร็จ</h1>
+          <p className="mt-2 text-sm text-slate-600">{initializationError}</p>
+          <p className="mt-2 text-xs text-slate-500">ข้อมูลเดิมยังไม่ถูกล้างโดยขั้นตอนนี้ กรุณาตรวจสอบพื้นที่จัดเก็บหรือไฟล์สำรองก่อนลองใหม่</p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-5 rounded-xl bg-emerald-700 px-4 py-2 text-sm font-semibold text-white"
+          >
+            ลองเริ่มต้นใหม่
+          </button>
         </div>
       </div>
     );

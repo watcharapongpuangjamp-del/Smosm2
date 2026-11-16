@@ -39,7 +39,7 @@ export interface Household {
   longitude: number;
   headOfHouseholdName: string;
   vhvMemberId: string;
-  sanitationRating: 'good' | 'fair' | 'poor'; // สุขาภิบาล
+  sanitationRating: 'good' | 'fair' | 'poor' | 'unknown'; // สุขาภิบาล
   mosquitoLarvaFound: boolean; // พบลูกน้ำยุงลาย
   waterSource: string; // แหล่งน้ำอุปโภคบริโภค
   wasteManagement: string; // การกำจัดขยะ

@@ -6,6 +6,7 @@ class DatabaseService {
   private db: SQLiteDBConnection | null = null;
   private isInitialized = false;
   private initPromise: Promise<void> | null = null;
+  private manualTransactionActive = false;
 
   /**
    * Initializes the database connection.
@@ -29,14 +30,66 @@ class DatabaseService {
           await this.sqlite.initWebStore();
         }
 
-        // Create or open the database connection
-        this.db = await this.sqlite.createConnection(
-          'smart_osm_db',
-          false,
-          'no-encryption',
-          1,
-          false
-        );
+        const databaseName = 'smart_osm_db';
+
+        // Capacitor's native plugin keeps a connection registry outside this service.
+        // Reuse a registered connection after retries/app re-entry instead of creating
+        // a second connection with the same name (which throws "already exists").
+        const getOrCreateConnection = async (encrypted: boolean, mode: string) => {
+          const consistency = (await this.sqlite.checkConnectionsConsistency()).result;
+          let connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+
+          if (consistency && connectionExists) {
+            return this.sqlite.retrieveConnection(databaseName, false);
+          }
+
+          // A stale JS/native registry entry can survive a failed initialization.
+          // Remove only this database connection (never the database file/data) before
+          // creating a replacement, otherwise createConnection throws "already exists".
+          if (connectionExists) {
+            await this.sqlite.closeConnection(databaseName, false);
+            connectionExists = (await this.sqlite.isConnection(databaseName, false)).result;
+            if (connectionExists) {
+              throw new Error(`พบ Connection ${databaseName} ค้างอยู่และไม่สามารถปิดได้ จึงหยุดเพื่อป้องกันการแตะต้องข้อมูลเดิม`);
+            }
+          }
+
+          return this.sqlite.createConnection(databaseName, encrypted, mode, 1, false);
+        };
+
+        if (platform === 'web') {
+          // SQLCipher is not supported by the Web/WASM implementation.
+          this.db = this.db ?? await getOrCreateConnection(false, 'no-encryption');
+        } else {
+          const encryptionConfigured = (await this.sqlite.isInConfigEncryption()).result;
+          if (!encryptionConfigured) {
+            throw new Error('SQLCipher is not enabled in the native Capacitor configuration.');
+          }
+
+          const databaseExists = (await this.sqlite.isDatabase(databaseName)).result;
+          const databaseEncrypted = databaseExists
+            ? (await this.sqlite.isDatabaseEncrypted(databaseName)).result
+            : false;
+          const secretStored = (await this.sqlite.isSecretStored()).result;
+
+          // Never generate a replacement key for an encrypted database: doing so would
+          // permanently prevent access to the existing records.
+          if (databaseExists && databaseEncrypted && !secretStored) {
+            throw new Error('พบฐานข้อมูลที่เข้ารหัสแล้ว แต่ไม่พบกุญแจใน Secure Storage ข้อมูลเดิมถูกเก็บไว้และยังไม่ถูกลบ');
+          }
+
+          if (!secretStored) {
+            const randomBytes = crypto.getRandomValues(new Uint8Array(32));
+            const passphrase = Array.from(randomBytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
+            await this.sqlite.setEncryptionSecret(passphrase);
+          }
+
+          // "encryption" migrates an existing plaintext DB; "secret" creates or opens
+          // an already-encrypted DB using the key stored by the native SQLite plugin.
+          const encryptionMode = databaseExists && !databaseEncrypted ? 'encryption' : 'secret';
+          this.db = this.db ?? await getOrCreateConnection(true, encryptionMode);
+        }
+
         await this.db.open();
 
         // Initialize table structures
@@ -209,7 +262,7 @@ class DatabaseService {
    */
   async run(statement: string, values?: any[]) {
     if (!this.db) await this.init();
-    return await this.db!.run(statement, values);
+    return await this.db!.run(statement, values, !this.manualTransactionActive);
   }
 
   /**
@@ -217,7 +270,40 @@ class DatabaseService {
    */
   async execute(statement: string) {
     if (!this.db) await this.init();
-    return await this.db!.execute(statement);
+    return await this.db!.execute(statement, !this.manualTransactionActive);
+  }
+
+  /** Begin an explicit transaction; statements inside it must not auto-commit. */
+  async beginTransaction(): Promise<void> {
+    if (!this.db) await this.init();
+    if (this.manualTransactionActive) {
+      throw new Error('มี Transaction ทำงานอยู่แล้ว');
+    }
+    await this.db!.beginTransaction();
+    const active = (await this.db!.isTransactionActive()).result;
+    if (!active) throw new Error('ไม่สามารถเริ่ม SQLite Transaction ได้');
+    this.manualTransactionActive = true;
+  }
+
+  async commitTransaction(): Promise<void> {
+    if (!this.db || !this.manualTransactionActive) {
+      throw new Error('ไม่มี SQLite Transaction ที่เปิดอยู่เพื่อ Commit');
+    }
+    try {
+      await this.db.commitTransaction();
+    } finally {
+      this.manualTransactionActive = false;
+    }
+  }
+
+  async rollbackTransaction(): Promise<void> {
+    if (!this.db || !this.manualTransactionActive) return;
+    try {
+      const active = (await this.db.isTransactionActive()).result;
+      if (active) await this.db.rollbackTransaction();
+    } finally {
+      this.manualTransactionActive = false;
+    }
   }
 
   /**

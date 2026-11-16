@@ -257,14 +257,18 @@ export const Households: React.FC<HouseholdsProps> = ({
                             ? 'text-emerald-600'
                             : house.sanitationRating === 'fair'
                             ? 'text-amber-600'
-                            : 'text-rose-600'
+                            : house.sanitationRating === 'poor'
+                            ? 'text-rose-600'
+                            : 'text-slate-500'
                         }`}
                       >
                         {house.sanitationRating === 'good'
                           ? 'ดี'
                           : house.sanitationRating === 'fair'
                           ? 'พอใช้'
-                          : 'ต้องปรับปรุง'}
+                          : house.sanitationRating === 'poor'
+                          ? 'ต้องปรับปรุง'
+                          : 'ยังไม่ได้ประเมิน'}
                       </span>
                     </span>
 
@@ -298,6 +302,11 @@ export const Households: React.FC<HouseholdsProps> = ({
                     </button>
                     <button
                       onClick={() => {
+                        const memberCount = persons.filter((person) => person.householdId === house.id).length;
+                        if (memberCount > 0) {
+                          alert(`ไม่สามารถลบบ้านเลขที่ ${house.houseNo} ได้ เนื่องจากยังมีสมาชิก ${memberCount} ราย กรุณาย้ายสมาชิกไปบ้านอื่นก่อน`);
+                          return;
+                        }
                         if (confirm(`ยืนยันการลบบ้านเลขที่ ${house.houseNo} หรือไม่?`)) {
                           onDeleteHousehold(house.id);
                         }

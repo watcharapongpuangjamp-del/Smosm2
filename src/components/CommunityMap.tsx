@@ -33,11 +33,21 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
     centerLng: 98.9853,
   };
 
-  const center = focusedHousehold 
-    ? { lat: focusedHousehold.latitude, lng: focusedHousehold.longitude }
+  const hasCoordinates = (house: Household) =>
+    Number.isFinite(house.latitude) &&
+    Number.isFinite(house.longitude) &&
+    house.latitude >= -90 && house.latitude <= 90 &&
+    house.longitude >= -180 && house.longitude <= 180 &&
+    !(house.latitude === 0 && house.longitude === 0);
+
+  const focusedHasCoordinates = focusedHousehold ? hasCoordinates(focusedHousehold) : false;
+  const center = focusedHasCoordinates
+    ? { lat: focusedHousehold!.latitude, lng: focusedHousehold!.longitude }
     : { lat: currentVillage.centerLat, lng: currentVillage.centerLng };
 
+  const unlocatedHouseCount = households.filter((house) => !hasCoordinates(house)).length;
   const displayHouses = households.filter((h) => {
+    if (!hasCoordinates(h)) return false;
     if (selectedVillageNo !== 0 && h.villageNo !== selectedVillageNo) return false;
     if (filterMode === 'larva' && !h.mosquitoLarvaFound) return false;
     if (filterMode === 'bedridden') {
@@ -62,6 +72,7 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
             คลิกบนหมุดเพื่อดูข้อมูลบ้าน หรือคลิกบนแผนที่เพื่อดึงพิกัดเพิ่มหลังคาเรือนใหม่
+            {unlocatedHouseCount > 0 && ` • ยังไม่มีพิกัด ${unlocatedHouseCount} หลัง (ไม่แสดงหมุด)`}
           </p>
         </div>
 
@@ -102,6 +113,7 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
 
       {/* Map Viewport Area */}
       <div className="relative w-full h-[580px] bg-slate-100 rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+        {apiKey ? (
         <APIProvider apiKey={apiKey}>
           <Map
             defaultCenter={center}
@@ -187,6 +199,18 @@ export const CommunityMap: React.FC<CommunityMapProps> = ({
             )}
           </Map>
         </APIProvider>
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center p-6 text-center">
+            <div className="max-w-md rounded-xl border border-amber-200 bg-white p-5 shadow-sm">
+              <MapPin className="mx-auto mb-2 h-8 w-8 text-amber-600" />
+              <p className="font-semibold text-slate-800">ยังไม่ได้ตั้งค่า Google Maps API Key</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-600">
+                กำหนด VITE_GOOGLE_MAPS_API_KEY ใน environment ของระบบ Build แล้วสร้าง APK ใหม่
+                ข้อมูลบ้านและพิกัดที่บันทึกไว้ยังคงอยู่ในฐานข้อมูล
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Map Legend Overlay */}
         <div className="absolute bottom-4 left-4 z-20 bg-white/95 backdrop-blur-xs p-3 rounded-xl shadow-md border border-slate-200 text-xs space-y-1.5 max-w-[220px]">
